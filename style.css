@@ -48,29 +48,15 @@ body {
     height: 100%;
 }
 
-/* ヘッダー/タイトル部 */
-header {
-    flex: 0 0 auto;
-    text-align: center;
-    padding: 10px;
-    z-index: 10;
-}
-
-h1 {
-    font-size: 1.5rem;
-    font-weight: 300;
-    letter-spacing: 0.2rem;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, #fff, var(--accent-color));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
+/* ヘッダー/タイトル部（不要なインゲームタイトル用スタイルは削除） */
 .stage-title {
-    font-size: 0.9rem;
-    opacity: 0.7;
-    margin-top: 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+    letter-spacing: 0.05rem;
 }
 
 /* パズルキャンバス容器 */
