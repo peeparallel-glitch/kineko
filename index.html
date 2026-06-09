@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KINEKO REBORN | Video Loop Puzzle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="title-screen" class="title-screen">
+        <h1 class="main-title">KINEKO REBORN</h1>
+        <p class="subtitle">Video Loop Puzzle</p>
+        <div class="difficulty-select">
+            <button class="btn diff-btn" id="btn-easy">イージー (3x3)</button>
+            <button class="btn diff-btn" id="btn-normal">ノーマル (4x4)</button>
+            <button class="btn diff-btn" id="btn-hard">ハード (5x5)</button>
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <header>
+            <h1 class="in-game-title">Kineko Reborn</h1>
+            <div id="stage-title" class="stage-title">Stage 1: Loading...</div>
+        </header>
+
+        <main class="puzzle-container">
+            <div id="puzzle-board"></div>
+            <div id="result-overlay" class="overlay">Stage Clear</div>
+        </main>
+
+        <footer class="controls">
+            <button id="next-btn" class="btn">スキップ</button>
+            <button id="giveup-btn" class="btn">ギブアップ</button>
+            <button id="preview-btn" class="btn btn-preview">完成図</button>
+        </footer>
+
+        <!-- 完成図モーダル -->
+        <div id="preview-modal" class="preview-modal" style="display:none;">
+            <div class="preview-inner">
+                <button id="preview-close" class="preview-close-btn">&times;</button>
+                <p class="preview-label">完成図</p>
+                <video id="preview-video" autoplay loop muted playsinline class="preview-video"></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
