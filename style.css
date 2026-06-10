@@ -166,21 +166,23 @@ body {
 /* メッセージ表示 */
 .overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.8);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none; /* JSでflexに切り替えます */
+    align-items: center;
+    justify-content: center;
+    background: transparent; /* 背景を透明に */
     color: var(--accent-color);
-    padding: 30px 60px;
-    border-radius: 10px;
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
-    display: none;
     z-index: 100;
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--accent-color);
     text-transform: uppercase;
-    letter-spacing: 5px;
+    letter-spacing: 8px;
+    text-shadow: 0 0 20px var(--accent-color), 0 0 40px rgba(0, 242, 255, 0.6);
+    cursor: pointer;
+    user-select: none;
 }
 
 /* タイトル画面 */
@@ -311,5 +313,19 @@ body {
 
 .preview-close-btn:hover {
     color: #ffd700;
+}
+
+/* パズル完成時の演出用スタイル */
+#puzzle-board.completed {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 40px var(--accent-color);
+}
+
+#puzzle-board.completed .piece {
+    border: none !important;
+}
+
+#puzzle-board.completed .piece.locked::after {
+    display: none !important;
 }
 

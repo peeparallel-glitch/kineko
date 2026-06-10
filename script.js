@@ -30,7 +30,7 @@ class KinekoGame {
     init() {
         this.loadStage(this.currentStageIndex);
         window.addEventListener('resize', () => this.resizeBoard());
-        document.getElementById('giveup-btn').addEventListener('click', () => this.shuffleBoard());
+        document.getElementById('reload-btn').addEventListener('click', () => this.loadStage(this.currentStageIndex));
         document.getElementById('next-btn').addEventListener('click', () => this.nextStage());
 
         // 完成図ボタン
@@ -52,13 +52,11 @@ class KinekoGame {
             previewVideo.src = '';
         });
 
-        // 背景クリックでも閉じる
-        previewModal.addEventListener('click', (e) => {
-            if (e.target === previewModal) {
-                previewModal.style.display = 'none';
-                previewVideo.pause();
-                previewVideo.src = '';
-            }
+        // 画面タップ（どこをクリックしても）で閉じる
+        previewModal.addEventListener('click', () => {
+            previewModal.style.display = 'none';
+            previewVideo.pause();
+            previewVideo.src = '';
         });
     }
 
@@ -284,10 +282,23 @@ class KinekoGame {
     onStageClear() {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
-        this.overlay.style.display = 'block';
 
+        // ボードに完成スタイルを適用（境界線やロックの半透明青表示などを消す）
+        this.board.classList.add('completed');
+
+        // 3秒間完成したループ動画をそのまま見せる
         setTimeout(() => {
-            this.nextStage();
+            // 文字のみを中央に表示
+            this.overlay.style.display = 'flex';
+
+            // タップで次のステージへ移行するイベントを登録
+            const proceed = () => {
+                this.overlay.removeEventListener('click', proceed);
+                this.overlay.style.display = 'none';
+                this.board.classList.remove('completed');
+                this.nextStage();
+            };
+            this.overlay.addEventListener('click', proceed);
         }, 3000);
     }
 
