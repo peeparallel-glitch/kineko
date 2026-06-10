@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- 共通の隠しビデオ要素（Canvas描画用、デコード負荷を1本分に抑える） -->
+    <video id="shared-video" loop muted playsinline style="display: none;"></video>
+
     <div id="title-screen" class="title-screen">
         <h1 class="main-title">KINEKO REBORN</h1>
         <p class="subtitle">Video Loop Puzzle</p>

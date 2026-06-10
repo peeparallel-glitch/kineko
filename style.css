@@ -114,8 +114,7 @@ body {
 
 /* 正解アニメーション・ロック状態 */
 .piece.locked {
-    cursor: default;
-    pointer-events: none;
+    /* 正解位置でも動かせるようにクリックを許可 */
 }
 
 .piece.locked::after {

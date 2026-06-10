@@ -17,6 +17,7 @@ class KinekoGame {
         this.currentStageIndex = 0;
         this.board = document.getElementById('puzzle-board');
         this.completedVideo = document.getElementById('completed-video');
+        this.sharedVideo = document.getElementById('shared-video'); // 共有ビデオ
         this.titleElement = document.getElementById('stage-title');
         this.overlay = document.getElementById('result-overlay');
         this.pieces = [];
@@ -24,6 +25,7 @@ class KinekoGame {
         this.isTransitioning = false;
         this.pieceWidth = 0;
         this.pieceHeight = 0;
+        this.drawLoopId = null; // 描画ループ管理用
 
         this.init();
     }
@@ -59,6 +61,9 @@ class KinekoGame {
             previewVideo.pause();
             previewVideo.src = '';
         });
+
+        // 描画ループを開始
+        this.startDrawingLoop();
     }
 
     loadStage(index) {
@@ -76,6 +81,10 @@ class KinekoGame {
         this.completedVideo.style.display = 'none';
         this.board.style.display = 'block';
 
+        // 共有ビデオの再生を開始
+        this.sharedVideo.src = stage.videoUrl;
+        this.sharedVideo.play().catch(err => console.log("Auto-play blocked or failed:", err));
+
         this.titleElement.innerHTML = `Stage ${index + 1}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
@@ -86,12 +95,12 @@ class KinekoGame {
         this.pieces = [];
         this.selectedPiece = null;
 
-        const { rows, cols, videoUrl } = stage;
+        const { rows, cols } = stage;
 
         // 正解のインデックスリストを作成
         const pieceCount = rows * cols;
         for (let i = 0; i < pieceCount; i++) {
-            const piece = this.createPiece(i, rows, cols, videoUrl);
+            const piece = this.createPiece(i, rows, cols);
             this.pieces.push(piece);
         }
 
@@ -108,39 +117,17 @@ class KinekoGame {
         setTimeout(() => tryResize(), 50);
     }
 
-    createPiece(correctIndex, rows, cols, videoUrl) {
-        const piece = document.createElement('div');
-        piece.className = 'piece';
-        piece.dataset.correctIndex = correctIndex;
-        piece.dataset.currentIndex = correctIndex;
-        piece.style.backgroundColor = '#222'; // 枠が見えるように
+    createPiece(correctIndex, rows, cols) {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'piece';
+        canvas.dataset.correctIndex = correctIndex;
+        canvas.dataset.currentIndex = correctIndex;
+        canvas.style.backgroundColor = '#222'; // 描画前バックアップ色
 
-        const video = document.createElement('video');
-        video.src = videoUrl;
-        video.autoplay = true;
-        video.loop = true;
-        video.muted = true;
-        video.playsInline = true;
+        canvas.addEventListener('click', () => this.handlePieceClick(canvas));
 
-        // 動画の読み込みエラー対策
-        video.onerror = () => {
-            console.error("Video failed to load:", videoUrl);
-            piece.style.backgroundColor = '#444';
-            const msg = document.createElement('span');
-            msg.innerText = "Error";
-            msg.style.position = "absolute";
-            msg.style.top = "50%";
-            msg.style.left = "50%";
-            msg.style.transform = "translate(-50%, -50%)";
-            msg.style.fontSize = "10px";
-            piece.appendChild(msg);
-        };
-
-        piece.appendChild(video);
-        piece.addEventListener('click', () => this.handlePieceClick(piece));
-
-        this.board.appendChild(piece);
-        return piece;
+        this.board.appendChild(canvas);
+        return canvas;
     }
 
     resizeBoard() {
@@ -180,21 +167,9 @@ class KinekoGame {
         this.pieceHeight = boardHeight / stage.rows;
 
         this.pieces.forEach(piece => {
-            const video = piece.querySelector('video');
-            const correctIdx = parseInt(piece.dataset.correctIndex);
-            const r = Math.floor(correctIdx / stage.cols);
-            const c = correctIdx % stage.cols;
-
             piece.style.width = `${this.pieceWidth}px`;
             piece.style.height = `${this.pieceHeight}px`;
             piece.style.position = 'absolute';
-
-            if (video) {
-                video.style.width = `${boardWidth}px`;
-                video.style.height = `${boardHeight}px`;
-                video.style.top = `-${r * this.pieceHeight}px`;
-                video.style.left = `-${c * this.pieceWidth}px`;
-            }
 
             this.updatePiecePosition(piece);
         });
@@ -241,7 +216,7 @@ class KinekoGame {
     }
 
     handlePieceClick(piece) {
-        if (piece.classList.contains('locked') || this.isTransitioning) return;
+        if (this.isTransitioning) return;
 
         if (!this.selectedPiece) {
             this.selectedPiece = piece;
@@ -279,6 +254,8 @@ class KinekoGame {
     checkLock(piece) {
         if (parseInt(piece.dataset.currentIndex) === parseInt(piece.dataset.correctIndex)) {
             piece.classList.add('locked');
+        } else {
+            piece.classList.remove('locked');
         }
     }
 
@@ -333,6 +310,45 @@ class KinekoGame {
         this.isTransitioning = false;
         const nextIdx = (this.currentStageIndex + 1) % STAGES.length;
         this.loadStage(nextIdx);
+    }
+
+    startDrawingLoop() {
+        const draw = () => {
+            const stage = STAGES[this.currentStageIndex];
+            const cols = stage.cols;
+            const rows = stage.rows;
+
+            // 共有ビデオが読み込まれており、クリアトランジション中でない場合のみ描画
+            if (this.sharedVideo.readyState >= 2 && !this.isTransitioning) {
+                this.pieces.forEach(piece => {
+                    const ctx = piece.getContext('2d');
+                    const correctIdx = parseInt(piece.dataset.correctIndex);
+                    const r = Math.floor(correctIdx / cols);
+                    const c = correctIdx % cols;
+
+                    // canvas内部の描画バッファ解像度をアライン
+                    if (piece.width !== this.pieceWidth || piece.height !== this.pieceHeight) {
+                        piece.width = this.pieceWidth;
+                        piece.height = this.pieceHeight;
+                    }
+
+                    // ビデオの元サイズから1ピース分の大きさを割り出す
+                    const vW = this.sharedVideo.videoWidth;
+                    const vH = this.sharedVideo.videoHeight;
+                    const sourcePieceW = vW / cols;
+                    const sourcePieceH = vH / rows;
+
+                    // Canvasに動画の該当領域を切り出して描画
+                    ctx.drawImage(
+                        this.sharedVideo,
+                        c * sourcePieceW, r * sourcePieceH, sourcePieceW, sourcePieceH, // ソース切り出し範囲
+                        0, 0, this.pieceWidth, this.pieceHeight // Canvas描画範囲
+                    );
+                });
+            }
+            this.drawLoopId = requestAnimationFrame(draw);
+        };
+        this.drawLoopId = requestAnimationFrame(draw);
     }
 }
 
