@@ -106,19 +106,6 @@ class KinekoGame {
             this.completedVideo.pause();
             this.completedVideo.src = '';
 
-            // フルスクリーン表示の解除
-            try {
-                if (document.fullscreenElement) {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen().catch(() => {});
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    }
-                }
-            } catch (e) {
-                console.log("Error exiting fullscreen:", e);
-            }
-
             // 画面の表示切り替え
             document.getElementById('app').style.display = 'none';
             document.getElementById('title-screen').style.display = 'flex';
@@ -508,38 +495,50 @@ class KinekoGame {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const startGame = (size, isHell = false) => {
-        // モバイルブラウザのアドレスバー（URLバー）を非表示にし、横画面（Landscape）に固定するリクエスト
+    // 画面のどこかを初めて触った（タップした）瞬間に自動的にフルスクリーン＆横画面にする
+    const triggerFullscreen = () => {
         const docEl = document.documentElement;
-        try {
-            const lockLandscape = () => {
-                if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(err => console.log("Orientation lock failed:", err));
-                }
-            };
+        const lockLandscape = () => {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        };
 
-            if (docEl.requestFullscreen) {
-                docEl.requestFullscreen()
-                    .then(lockLandscape)
-                    .catch(err => console.log("Fullscreen error:", err));
-            } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS 用の古いプレフィックス */
-                docEl.webkitRequestFullscreen();
-                setTimeout(lockLandscape, 200);
-            } else if (docEl.mozRequestFullScreen) {
-                docEl.mozRequestFullScreen();
-                setTimeout(lockLandscape, 200);
-            } else if (docEl.msRequestFullscreen) {
-                docEl.msRequestFullscreen();
-                setTimeout(lockLandscape, 200);
+        try {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen().then(lockLandscape).catch(() => {});
+                } else if (docEl.webkitRequestFullscreen) {
+                    docEl.webkitRequestFullscreen();
+                    setTimeout(lockLandscape, 200);
+                }
+            } else {
+                lockLandscape(); // すでにフルスクリーンの場合は横画面ロックのみ実行
             }
         } catch (e) {
-            console.error("Fullscreen request failed:", e);
+            console.log("Auto fullscreen request failed:", e);
         }
+    };
+
+    // タイトル画面タップでのフルスクリーン化イベントを登録（初回のみ）
+    document.addEventListener('click', triggerFullscreen, { once: true });
+    document.addEventListener('touchstart', triggerFullscreen, { once: true });
+
+    const startGame = (size, isHell = false) => {
+        // ボタンクリック時にも念のためフルスクリーン化を実行（タップされなかった場合の保険）
+        triggerFullscreen();
 
         document.getElementById('title-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         // iOS等での動画の自動再生制約を解除するために再描画などを促す
         setTimeout(() => {
+            // 既存のインスタンスが残っている場合はクリーンアップ（タイマー等を確実に停止）
+            if (window.gameInstance) {
+                window.gameInstance.stopTimer();
+                if (window.gameInstance.drawLoopId) {
+                    cancelAnimationFrame(window.gameInstance.drawLoopId);
+                }
+            }
             window.gameInstance = new KinekoGame(size, isHell);
         }, 100);
     };
