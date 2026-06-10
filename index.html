@@ -13,10 +13,23 @@
     <div id="title-screen" class="title-screen">
         <h1 class="main-title">KINEKO REBORN</h1>
         <p class="subtitle">Video Loop Puzzle</p>
-        <div class="difficulty-select">
-            <button class="btn diff-btn" id="btn-easy">イージー (3x3)</button>
-            <button class="btn diff-btn" id="btn-normal">ノーマル (4x4)</button>
-            <button class="btn diff-btn" id="btn-hard">ハード (5x5)</button>
+        <div class="mode-container">
+            <div class="mode-section">
+                <h2 class="mode-title">通常モード</h2>
+                <div class="difficulty-select">
+                    <button class="btn diff-btn" id="btn-easy">イージー (3x3)</button>
+                    <button class="btn diff-btn" id="btn-normal">ノーマル (4x4)</button>
+                    <button class="btn diff-btn" id="btn-hard">ハード (5x5)</button>
+                </div>
+            </div>
+            <div class="mode-section hell-section">
+                <h2 class="mode-title hell-title">ヘルモード 💀</h2>
+                <div class="difficulty-select">
+                    <button class="btn diff-btn btn-hell" id="btn-easy-hell">ヘル イージー (3x3)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-normal-hell">ヘル ノーマル (4x4)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-hard-hell">ヘル ハード (5x5)</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -32,9 +45,17 @@
         <footer class="controls">
             <div id="stage-title" class="stage-title">Stage 1: Loading...</div>
             <div id="game-timer" class="game-timer">00:00</div>
+            
+            <!-- ヘルモード用の反転トグルボタン -->
+            <div id="flip-controls" class="flip-controls" style="display: none;">
+                <button id="btn-flip-h" class="btn btn-flip">⇔ 左右</button>
+                <button id="btn-flip-v" class="btn btn-flip">⇕ 上下</button>
+            </div>
+            
             <button id="next-btn" class="btn">スキップ</button>
             <button id="reload-btn" class="btn">リロード</button>
             <button id="preview-btn" class="btn btn-preview">完成図</button>
+            <button id="back-to-title-btn" class="btn btn-back-title">タイトルへ</button>
         </footer>
 
         <!-- 完成図モーダル -->

@@ -12,14 +12,20 @@ const STAGES = [
 ];
 
 class KinekoGame {
-    constructor(diffSize) {
+    constructor(diffSize, isHellMode = false) {
         this.globalGridSize = diffSize;
+        this.isHellMode = isHellMode; // ヘルモード判定フラグ
         this.currentStageIndex = 0;
         this.board = document.getElementById('puzzle-board');
         this.completedVideo = document.getElementById('completed-video');
         this.sharedVideo = document.getElementById('shared-video'); // 共有ビデオ
         this.titleElement = document.getElementById('stage-title');
         this.overlay = document.getElementById('result-overlay');
+        
+        // 反転トグル管理用フラグ
+        this.flipHActive = false;
+        this.flipVActive = false;
+
         this.pieces = [];
         this.selectedPiece = null;
         this.isTransitioning = false;
@@ -64,6 +70,60 @@ class KinekoGame {
             previewVideo.src = '';
         });
 
+        // 左右・上下反転トグルイベントのバインド（片方を押すともう片方は自動解除される排他仕様）
+        const btnFlipH = document.getElementById('btn-flip-h');
+        const btnFlipV = document.getElementById('btn-flip-v');
+
+        btnFlipH.addEventListener('click', () => {
+            this.flipHActive = !this.flipHActive;
+            btnFlipH.classList.toggle('active', this.flipHActive);
+            
+            if (this.flipHActive) {
+                this.flipVActive = false;
+                btnFlipV.classList.remove('active');
+            }
+        });
+
+        btnFlipV.addEventListener('click', () => {
+            this.flipVActive = !this.flipVActive;
+            btnFlipV.classList.toggle('active', this.flipVActive);
+            
+            if (this.flipVActive) {
+                this.flipHActive = false;
+                btnFlipH.classList.remove('active');
+            }
+        });
+
+        // タイトルへ戻るボタンのイベント登録
+        document.getElementById('back-to-title-btn').addEventListener('click', () => {
+            this.stopTimer();
+            if (this.drawLoopId) {
+                cancelAnimationFrame(this.drawLoopId);
+                this.drawLoopId = null;
+            }
+            this.sharedVideo.pause();
+            this.sharedVideo.src = '';
+            this.completedVideo.pause();
+            this.completedVideo.src = '';
+
+            // フルスクリーン表示の解除
+            try {
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+            } catch (e) {
+                console.log("Error exiting fullscreen:", e);
+            }
+
+            // 画面の表示切り替え
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+        });
+
         // 描画ループを開始
         this.startDrawingLoop();
     }
@@ -87,7 +147,23 @@ class KinekoGame {
         this.sharedVideo.src = stage.videoUrl;
         this.sharedVideo.play().catch(err => console.log("Auto-play blocked or failed:", err));
 
-        this.titleElement.innerHTML = `Stage ${index + 1}<br>${stage.title}`;
+        // 反転トグル状態の初期化
+        this.flipHActive = false;
+        this.flipVActive = false;
+        document.getElementById('btn-flip-h').classList.remove('active');
+        document.getElementById('btn-flip-v').classList.remove('active');
+
+        // ヘルモード用のUI表示制御
+        const flipControls = document.getElementById('flip-controls');
+        if (this.isHellMode) {
+            flipControls.style.display = 'flex';
+        } else {
+            flipControls.style.display = 'none';
+        }
+
+        // ヘルモード表記の有無
+        const modeLabel = this.isHellMode ? " [HELL]" : "";
+        this.titleElement.innerHTML = `Stage ${index + 1}${modeLabel}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
         this.startTimer();
@@ -125,6 +201,8 @@ class KinekoGame {
         canvas.className = 'piece';
         canvas.dataset.correctIndex = correctIndex;
         canvas.dataset.currentIndex = correctIndex;
+        canvas.dataset.flipH = "false"; // 左右反転フラグ
+        canvas.dataset.flipV = "false"; // 上下反転フラグ
         canvas.style.backgroundColor = '#222'; // 描画前バックアップ色
 
         canvas.addEventListener('click', () => this.handlePieceClick(canvas));
@@ -183,9 +261,12 @@ class KinekoGame {
         const stage = STAGES[this.currentStageIndex];
         const r = Math.floor(currentIdx / stage.cols);
         const c = currentIdx % stage.cols;
+        
+        const scaleX = piece.dataset.flipH === "true" ? -1 : 1;
+        const scaleY = piece.dataset.flipV === "true" ? -1 : 1;
 
-        // translate3dを使用し、GPUアクセラレーションを有効にして描画を滑らかに
-        piece.style.transform = `translate3d(${c * this.pieceWidth}px, ${r * this.pieceHeight}px, 0)`;
+        // translate3dとscaleを組み合わせて描画。ピース自体は回転させず、画像（中身の反転）だけを表現
+        piece.style.transform = `translate3d(${c * this.pieceWidth}px, ${r * this.pieceHeight}px, 0) scale(${scaleX}, ${scaleY})`;
     }
 
     shuffleBoard() {
@@ -197,6 +278,17 @@ class KinekoGame {
             [indices[i], indices[j]] = [indices[j], indices[i]];
         }
 
+        // ヘルモードの場合は向き（反転）もランダムに設定
+        this.pieces.forEach(piece => {
+            if (this.isHellMode) {
+                piece.dataset.flipH = Math.random() < 0.5 ? "true" : "false";
+                piece.dataset.flipV = Math.random() < 0.5 ? "true" : "false";
+            } else {
+                piece.dataset.flipH = "false";
+                piece.dataset.flipV = "false";
+            }
+        });
+
         this.updateBoard(indices);
     }
 
@@ -206,12 +298,7 @@ class KinekoGame {
             if (piece) {
                 piece.dataset.currentIndex = currentIdx;
                 this.updatePiecePosition(piece);
-
-                if (parseInt(piece.dataset.correctIndex) === currentIdx) {
-                    piece.classList.add('locked');
-                } else {
-                    piece.classList.remove('locked');
-                }
+                this.checkLock(piece);
             }
         });
 
@@ -221,10 +308,39 @@ class KinekoGame {
     handlePieceClick(piece) {
         if (this.isTransitioning) return;
 
+        // 反転トグルのいずれかがロック（アクティブ）されている場合、反転処理を実行
+        if (this.isHellMode && (this.flipHActive || this.flipVActive)) {
+            if (this.flipHActive) {
+                const currentFlipH = piece.dataset.flipH === "true";
+                piece.dataset.flipH = (!currentFlipH).toString();
+            }
+            if (this.flipVActive) {
+                const currentFlipV = piece.dataset.flipV === "true";
+                piece.dataset.flipV = (!currentFlipV).toString();
+            }
+
+            // 選択状態があれば解除
+            if (this.selectedPiece) {
+                this.selectedPiece.classList.remove('selected');
+                this.selectedPiece = null;
+            }
+
+            this.updatePiecePosition(piece);
+
+            // アニメーション完了を待ってから判定
+            setTimeout(() => {
+                this.checkLock(piece);
+                this.checkWin();
+            }, 300);
+            return;
+        }
+
+        // 通常の選択・入れ替え処理
         if (!this.selectedPiece) {
             this.selectedPiece = piece;
             piece.classList.add('selected');
         } else if (this.selectedPiece === piece) {
+            // 通常モードなら選択解除
             this.selectedPiece.classList.remove('selected');
             this.selectedPiece = null;
         } else {
@@ -255,7 +371,10 @@ class KinekoGame {
     }
 
     checkLock(piece) {
-        if (parseInt(piece.dataset.currentIndex) === parseInt(piece.dataset.correctIndex)) {
+        const posCorrect = parseInt(piece.dataset.currentIndex) === parseInt(piece.dataset.correctIndex);
+        const rotCorrect = !this.isHellMode || (piece.dataset.flipH === "false" && piece.dataset.flipV === "false");
+
+        if (posCorrect && rotCorrect) {
             piece.classList.add('locked');
         } else {
             piece.classList.remove('locked');
@@ -263,9 +382,11 @@ class KinekoGame {
     }
 
     checkWin() {
-        const allCorrect = this.pieces.every(p =>
-            parseInt(p.dataset.currentIndex) === parseInt(p.dataset.correctIndex)
-        );
+        const allCorrect = this.pieces.every(p => {
+            const posCorrect = parseInt(p.dataset.currentIndex) === parseInt(p.dataset.correctIndex);
+            const rotCorrect = !this.isHellMode || (p.dataset.flipH === "false" && p.dataset.flipV === "false");
+            return posCorrect && rotCorrect;
+        });
 
         if (allCorrect && this.pieces.length > 0) {
             this.onStageClear();
@@ -387,7 +508,7 @@ class KinekoGame {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const startGame = (size) => {
+    const startGame = (size, isHell = false) => {
         // モバイルブラウザのアドレスバー（URLバー）を非表示にし、横画面（Landscape）に固定するリクエスト
         const docEl = document.documentElement;
         try {
@@ -419,11 +540,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('app').style.display = 'flex';
         // iOS等での動画の自動再生制約を解除するために再描画などを促す
         setTimeout(() => {
-            window.gameInstance = new KinekoGame(size);
+            window.gameInstance = new KinekoGame(size, isHell);
         }, 100);
     };
 
-    document.getElementById('btn-easy').addEventListener('click', () => startGame(3));
-    document.getElementById('btn-normal').addEventListener('click', () => startGame(4));
-    document.getElementById('btn-hard').addEventListener('click', () => startGame(5));
+    // 通常モードの難易度選択
+    document.getElementById('btn-easy').addEventListener('click', () => startGame(3, false));
+    document.getElementById('btn-normal').addEventListener('click', () => startGame(4, false));
+    document.getElementById('btn-hard').addEventListener('click', () => startGame(5, false));
+
+    // ヘルモードの難易度選択
+    document.getElementById('btn-easy-hell').addEventListener('click', () => startGame(3, true));
+    document.getElementById('btn-normal-hell').addEventListener('click', () => startGame(4, true));
+    document.getElementById('btn-hard-hell').addEventListener('click', () => startGame(5, true));
 });

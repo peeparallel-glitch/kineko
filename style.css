@@ -205,11 +205,13 @@ body {
     align-items: center;
     background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d0d 100%);
     z-index: 1000;
+    overflow-y: auto;
+    padding: 20px 0;
 }
 
 .title-screen .main-title {
-    font-size: 4rem;
-    margin-bottom: 0.5rem;
+    font-size: 3.5rem;
+    margin-bottom: 0.2rem;
     text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
     background: linear-gradient(90deg, #ffffff, var(--accent-color));
     -webkit-background-clip: text;
@@ -219,24 +221,61 @@ body {
 }
 
 .title-screen .subtitle {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: var(--accent-color);
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
     letter-spacing: 0.3rem;
     text-transform: uppercase;
     opacity: 0.8;
 }
 
+.mode-container {
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 90%;
+    max-width: 800px;
+}
+
+@media (max-width: 640px) {
+    .mode-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+    }
+}
+
+.mode-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mode-title {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 2px;
+}
+
+.hell-title {
+    color: #ff003c;
+    text-shadow: 0 0 10px rgba(255, 0, 60, 0.6);
+}
+
 .difficulty-select {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .diff-btn {
-    font-size: 1.2rem;
-    padding: 15px 40px;
-    width: 250px;
+    font-size: 1rem;
+    padding: 12px 30px;
+    width: 220px;
     font-weight: bold;
     letter-spacing: 0.1rem;
     background: rgba(255, 255, 255, 0.05);
@@ -245,6 +284,19 @@ body {
 .diff-btn:hover {
     background: rgba(0, 242, 255, 0.2);
     transform: scale(1.05);
+}
+
+/* ヘルモードボタン */
+.btn-hell {
+    border-color: rgba(255, 0, 60, 0.4);
+    color: #ff3366;
+}
+
+.btn-hell:hover {
+    background: rgba(255, 0, 60, 0.2) !important;
+    border-color: #ff003c !important;
+    color: #ff6688 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 60, 0.4);
 }
 
 /* 完成図ボタン */
@@ -257,6 +309,20 @@ body {
 .btn-preview:hover {
     background: rgba(255, 220, 0, 0.3);
     border-color: #ffd700;
+    transform: scale(1.05);
+}
+
+/* タイトルへ戻るボタン */
+.btn-back-title {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #aaaaaa;
+}
+
+.btn-back-title:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
     transform: scale(1.05);
 }
 
@@ -347,5 +413,38 @@ body {
     margin-bottom: 10px; /* 下のボタン群との間隔 */
     text-align: center;
     width: 100%;
+}
+
+/* 反転操作トグルボタンのスタイル */
+.flip-controls {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.btn-flip {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 8px 5px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.btn-flip:hover {
+    border-color: rgba(255, 0, 60, 0.5) !important;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* アクティブ（ロック）状態 */
+.btn-flip.active {
+    background: rgba(255, 0, 60, 0.2) !important;
+    border-color: #ff003c !important;
+    color: #ff3366 !important;
+    box-shadow: 0 0 12px rgba(255, 0, 60, 0.5);
 }
 
