@@ -91,12 +91,17 @@ body {
     background: #222;
     /* ビデオ読み込み前の色 */
     border: 0.5px solid rgba(255, 255, 255, 0.05);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .piece video {
     position: absolute;
     pointer-events: none;
     object-fit: fill; /* アスペクト比に合わせてピタッと埋める */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 /* 選択状態 */
@@ -319,16 +324,12 @@ body {
 }
 
 /* パズル完成時の演出用スタイル */
-#puzzle-board.completed {
-    border-color: var(--accent-color);
+.completed-video {
+    position: absolute;
+    border: 3px solid var(--accent-color);
+    border-radius: var(--piece-radius);
     box-shadow: 0 0 40px var(--accent-color);
-}
-
-#puzzle-board.completed .piece {
-    border: none !important;
-}
-
-#puzzle-board.completed .piece.locked::after {
-    display: none !important;
+    object-fit: fill;
+    z-index: 10;
 }
 

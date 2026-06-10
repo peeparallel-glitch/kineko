@@ -16,6 +16,7 @@ class KinekoGame {
         this.globalGridSize = diffSize;
         this.currentStageIndex = 0;
         this.board = document.getElementById('puzzle-board');
+        this.completedVideo = document.getElementById('completed-video');
         this.titleElement = document.getElementById('stage-title');
         this.overlay = document.getElementById('result-overlay');
         this.pieces = [];
@@ -68,6 +69,13 @@ class KinekoGame {
         stage.cols = this.globalGridSize;
         // 16:9 比率を全ステージに強制適用（ステージ固有値がある場合はそちら優先）
         if (!stage.aspectRatio) stage.aspectRatio = 16 / 9;
+
+        // 完成用動画を非表示・初期化し、パズルボードを再表示
+        this.completedVideo.pause();
+        this.completedVideo.src = '';
+        this.completedVideo.style.display = 'none';
+        this.board.style.display = 'block';
+
         this.titleElement.innerHTML = `Stage ${index + 1}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
@@ -161,6 +169,10 @@ class KinekoGame {
             boardHeight = boardWidth / gridAspect;
         }
 
+        // グリッド数で割り切れるようにサイズを整数値に丸め、小数点による画像ズレ（隙間）を防止
+        boardWidth = Math.floor(boardWidth / stage.cols) * stage.cols;
+        boardHeight = Math.floor(boardHeight / stage.rows) * stage.rows;
+
         this.board.style.width = `${boardWidth}px`;
         this.board.style.height = `${boardHeight}px`;
 
@@ -194,7 +206,8 @@ class KinekoGame {
         const r = Math.floor(currentIdx / stage.cols);
         const c = currentIdx % stage.cols;
 
-        piece.style.transform = `translate(${c * this.pieceWidth}px, ${r * this.pieceHeight}px)`;
+        // translate3dを使用し、GPUアクセラレーションを有効にして描画を滑らかに
+        piece.style.transform = `translate3d(${c * this.pieceWidth}px, ${r * this.pieceHeight}px, 0)`;
     }
 
     shuffleBoard() {
@@ -283,8 +296,16 @@ class KinekoGame {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
 
-        // ボードに完成スタイルを適用（境界線やロックの半透明青表示などを消す）
-        this.board.classList.add('completed');
+        // 1枚の完成版動画に切り替えて再生する
+        const stage = STAGES[this.currentStageIndex];
+        this.completedVideo.src = stage.videoUrl;
+        this.completedVideo.style.width = this.board.style.width;
+        this.completedVideo.style.height = this.board.style.height;
+        this.completedVideo.style.display = 'block';
+        this.completedVideo.play();
+
+        // 複数動画タイルは非表示にする
+        this.board.style.display = 'none';
 
         // 3秒間完成したループ動画をそのまま見せる
         setTimeout(() => {
@@ -295,7 +316,13 @@ class KinekoGame {
             const proceed = () => {
                 this.overlay.removeEventListener('click', proceed);
                 this.overlay.style.display = 'none';
-                this.board.classList.remove('completed');
+                
+                // 次のステージへ行く前に動画要素をクリーンアップ
+                this.completedVideo.pause();
+                this.completedVideo.src = '';
+                this.completedVideo.style.display = 'none';
+                this.board.style.display = 'block';
+
                 this.nextStage();
             };
             this.overlay.addEventListener('click', proceed);
