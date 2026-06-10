@@ -57,6 +57,7 @@ body {
     text-align: center;
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
     letter-spacing: 0.05rem;
+    line-height: 1.4;
 }
 
 /* パズルキャンバス容器 */
@@ -144,6 +145,8 @@ body {
     padding: 10px;
     gap: 15px;
     min-width: 120px;
+    position: relative;
+    z-index: 100; /* タップがパズル要素に遮られないように最前面へ表示 */
 }
 
 .btn {

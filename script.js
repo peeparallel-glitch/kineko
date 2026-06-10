@@ -68,7 +68,7 @@ class KinekoGame {
         stage.cols = this.globalGridSize;
         // 16:9 比率を全ステージに強制適用（ステージ固有値がある場合はそちら優先）
         if (!stage.aspectRatio) stage.aspectRatio = 16 / 9;
-        this.titleElement.innerText = `Stage ${index + 1}: ${stage.title}`;
+        this.titleElement.innerHTML = `Stage ${index + 1}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
     }
