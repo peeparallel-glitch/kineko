@@ -26,6 +26,8 @@ class KinekoGame {
         this.pieceWidth = 0;
         this.pieceHeight = 0;
         this.drawLoopId = null; // 描画ループ管理用
+        this.startTime = null; // タイマー開始時刻
+        this.timerInterval = null; // タイマー監視インターバル
 
         this.init();
     }
@@ -88,6 +90,7 @@ class KinekoGame {
         this.titleElement.innerHTML = `Stage ${index + 1}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
+        this.startTimer();
     }
 
     createBoard(stage) {
@@ -272,6 +275,7 @@ class KinekoGame {
     onStageClear() {
         if (this.isTransitioning) return;
         this.isTransitioning = true;
+        this.stopTimer(); // タイマーをストップ
 
         // 1枚の完成版動画に切り替えて再生する
         const stage = STAGES[this.currentStageIndex];
@@ -350,10 +354,56 @@ class KinekoGame {
         };
         this.drawLoopId = requestAnimationFrame(draw);
     }
+
+    startTimer() {
+        this.stopTimer(); // 既存のタイマーを破棄
+        this.startTime = Date.now();
+
+        // 00:00で初期化表示
+        const timerEl = document.getElementById('game-timer');
+        if (timerEl) {
+            timerEl.innerText = '00:00';
+        }
+
+        this.timerInterval = setInterval(() => {
+            const timeDiff = Date.now() - this.startTime;
+            const minutes = Math.floor(timeDiff / 60000);
+            const seconds = Math.floor((timeDiff % 60000) / 1000);
+            const displayMin = String(minutes).padStart(2, '0');
+            const displaySec = String(seconds).padStart(2, '0');
+
+            if (timerEl) {
+                timerEl.innerText = `${displayMin}:${displaySec}`;
+            }
+        }, 250); // 0.25秒ごとに画面表示を更新
+    }
+
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     const startGame = (size) => {
+        // モバイルブラウザのアドレスバー（URLバー）を非表示にするため、全画面（フルスクリーン）モードをリクエスト
+        const docEl = document.documentElement;
+        try {
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().catch(err => console.log("Fullscreen error:", err));
+            } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS 用の古いプレフィックス */
+                docEl.webkitRequestFullscreen();
+            } else if (docEl.mozRequestFullScreen) {
+                docEl.mozRequestFullScreen();
+            } else if (docEl.msRequestFullscreen) {
+                docEl.msRequestFullscreen();
+            }
+        } catch (e) {
+            console.error("Fullscreen request failed:", e);
+        }
+
         document.getElementById('title-screen').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
         // iOS等での動画の自動再生制約を解除するために再描画などを促す
