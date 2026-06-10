@@ -388,17 +388,28 @@ class KinekoGame {
 
 document.addEventListener('DOMContentLoaded', () => {
     const startGame = (size) => {
-        // モバイルブラウザのアドレスバー（URLバー）を非表示にするため、全画面（フルスクリーン）モードをリクエスト
+        // モバイルブラウザのアドレスバー（URLバー）を非表示にし、横画面（Landscape）に固定するリクエスト
         const docEl = document.documentElement;
         try {
+            const lockLandscape = () => {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => console.log("Orientation lock failed:", err));
+                }
+            };
+
             if (docEl.requestFullscreen) {
-                docEl.requestFullscreen().catch(err => console.log("Fullscreen error:", err));
+                docEl.requestFullscreen()
+                    .then(lockLandscape)
+                    .catch(err => console.log("Fullscreen error:", err));
             } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS 用の古いプレフィックス */
                 docEl.webkitRequestFullscreen();
+                setTimeout(lockLandscape, 200);
             } else if (docEl.mozRequestFullScreen) {
                 docEl.mozRequestFullScreen();
+                setTimeout(lockLandscape, 200);
             } else if (docEl.msRequestFullscreen) {
                 docEl.msRequestFullscreen();
+                setTimeout(lockLandscape, 200);
             }
         } catch (e) {
             console.error("Fullscreen request failed:", e);

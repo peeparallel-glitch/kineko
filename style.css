@@ -334,20 +334,18 @@ body {
 
 /* タイマースタイル */
 .game-timer {
-    position: absolute;
-    top: 15px;
-    right: 15px;
     font-size: 1.3rem;
     font-family: 'Courier New', Courier, monospace; /* 数字がブレないよう等幅フォント */
     font-weight: bold;
     color: var(--accent-color);
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.6);
-    background: rgba(0, 0, 0, 0.65);
-    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 20px;
     border-radius: 20px;
-    border: 1px solid rgba(0, 242, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
-    z-index: 150;
-    pointer-events: none; /* 下にある要素のクリックを邪魔しない */
+    margin-bottom: 10px; /* 下のボタン群との間隔 */
+    text-align: center;
+    width: 100%;
 }
 
