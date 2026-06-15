@@ -5,10 +5,10 @@ const STAGES = [
     { title: "Dog", videoUrl: "dog.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
     { title: "Meri-", videoUrl: "meri-.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
     { title: "Hanabi", videoUrl: "hanabi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "For Bigger Joyrides", videoUrl: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", rows: 4, cols: 4 },
-    { title: "For Bigger Meltdowns", videoUrl: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", rows: 4, cols: 5 },
-    { title: "Sintel Trailer", videoUrl: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", rows: 5, cols: 5 },
-    { title: "Tears of Steel", videoUrl: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", rows: 5, cols: 6 }
+    { title: "Fuusya", videoUrl: "fuusya.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Funsui", videoUrl: "funsui.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Hiyoko", videoUrl: "hiyoko.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kamo", videoUrl: "kamo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 }
 ];
 
 class KinekoGame {
