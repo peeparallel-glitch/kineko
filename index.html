@@ -66,6 +66,29 @@
                 <video id="preview-video" autoplay loop muted playsinline class="preview-video"></video>
             </div>
         </div>
+
+        <!-- タイムアップ（時間切れ）モーダル -->
+        <div id="timeup-modal" class="timeup-modal" style="display:none;">
+            <div class="timeup-inner">
+                <h2 class="timeup-title">TIME UP</h2>
+                <p class="timeup-text">制限時間内にクリアできませんでした。</p>
+                <div class="timeup-buttons">
+                    <button id="ad-btn" class="btn btn-ad">広告を見て +1分延長 📺</button>
+                    <button id="retry-stage-btn" class="btn btn-retry">再挑戦</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 疑似広告再生用モーダル -->
+        <div id="ad-modal" class="ad-modal" style="display:none;">
+            <div class="ad-inner">
+                <p class="ad-status">広告を再生中...</p>
+                <div class="ad-progress-container">
+                    <div id="ad-progress-bar" class="ad-progress-bar"></div>
+                </div>
+                <p class="ad-tip">あと <span id="ad-countdown">3</span> 秒で終了します</p>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>

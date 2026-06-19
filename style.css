@@ -447,4 +447,134 @@ body {
     color: #ff3366 !important;
     box-shadow: 0 0 12px rgba(255, 0, 60, 0.5);
 }
+
+/* タイムアップ（時間切れ）モーダル */
+.timeup-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+}
+
+.timeup-inner {
+    background: rgba(20, 10, 10, 0.9);
+    border: 2px solid #ff003c;
+    box-shadow: 0 0 30px rgba(255, 0, 60, 0.4);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.timeup-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ff003c;
+    text-shadow: 0 0 15px rgba(255, 0, 60, 0.6);
+    letter-spacing: 4px;
+}
+
+.timeup-text {
+    font-size: 1.1rem;
+    color: #ffffff;
+    opacity: 0.9;
+}
+
+.timeup-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.btn-ad {
+    background: rgba(255, 0, 60, 0.2) !important;
+    border-color: #ff003c !important;
+    color: #ff6688 !important;
+    font-weight: bold;
+    font-size: 1.1rem !important;
+    padding: 14px 20px !important;
+    box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+    border-radius: 30px;
+}
+
+.btn-ad:hover {
+    background: rgba(255, 0, 60, 0.35) !important;
+    box-shadow: 0 0 20px rgba(255, 0, 60, 0.6) !important;
+    transform: scale(1.03);
+}
+
+.btn-retry {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #cccccc !important;
+    font-size: 1rem !important;
+    padding: 12px 20px !important;
+    border-radius: 30px;
+}
+
+.btn-retry:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    transform: scale(1.03);
+}
+
+/* 疑似広告再生モーダル */
+.ad-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #000000;
+    z-index: 4000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ad-inner {
+    text-align: center;
+    width: 80%;
+    max-width: 400px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ad-status {
+    font-size: 1.2rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.ad-progress-container {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.ad-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #00f2ff;
+    box-shadow: 0 0 10px #00f2ff;
+    border-radius: 5px;
+}
+
+.ad-tip {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
 

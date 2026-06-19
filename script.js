@@ -35,6 +35,10 @@ class KinekoGame {
         this.startTime = null; // タイマー開始時刻
         this.timerInterval = null; // タイマー監視インターバル
 
+        // 制限時間（ミリ秒）: 5分 = 300,000ms
+        this.defaultRemainingTime = 300000;
+        this.currentRemainingTime = 300000;
+
         this.init();
     }
 
@@ -68,6 +72,14 @@ class KinekoGame {
             previewModal.style.display = 'none';
             previewVideo.pause();
             previewVideo.src = '';
+        });
+
+        // タイムアップモーダルのボタンイベント
+        document.getElementById('ad-btn').addEventListener('click', () => this.watchAd());
+        document.getElementById('retry-stage-btn').addEventListener('click', () => {
+            document.getElementById('timeup-modal').style.display = 'none';
+            this.isTransitioning = false;
+            this.loadStage(this.currentStageIndex);
         });
 
         // 左右・上下反転トグルイベントのバインド（片方を押すともう片方は自動解除される排他仕様）
@@ -106,6 +118,11 @@ class KinekoGame {
             this.completedVideo.pause();
             this.completedVideo.src = '';
 
+            // モーダルを非表示
+            document.getElementById('timeup-modal').style.display = 'none';
+            document.getElementById('ad-modal').style.display = 'none';
+            this.isTransitioning = false;
+
             // 画面の表示切り替え
             document.getElementById('app').style.display = 'none';
             document.getElementById('title-screen').style.display = 'flex';
@@ -130,6 +147,10 @@ class KinekoGame {
         this.completedVideo.style.display = 'none';
         this.board.style.display = 'block';
 
+        // モーダルを隠す
+        document.getElementById('timeup-modal').style.display = 'none';
+        document.getElementById('ad-modal').style.display = 'none';
+
         // 共有ビデオの再生を開始
         this.sharedVideo.src = stage.videoUrl;
         this.sharedVideo.play().catch(err => console.log("Auto-play blocked or failed:", err));
@@ -153,7 +174,10 @@ class KinekoGame {
         this.titleElement.innerHTML = `Stage ${index + 1}${modeLabel}<br>${stage.title}`;
         this.overlay.style.display = 'none';
         this.createBoard(stage);
-        this.startTimer();
+        
+        // 制限時間をデフォルト（5分）にリセットしてカウントダウン開始
+        this.currentRemainingTime = this.defaultRemainingTime;
+        this.startTimer(this.currentRemainingTime);
     }
 
     createBoard(stage) {
@@ -463,25 +487,30 @@ class KinekoGame {
         this.drawLoopId = requestAnimationFrame(draw);
     }
 
-    startTimer() {
+    startTimer(duration) {
         this.stopTimer(); // 既存のタイマーを破棄
         this.startTime = Date.now();
+        this.initialDuration = duration; // カウントダウン開始時の残り時間
 
-        // 00:00で初期化表示
         const timerEl = document.getElementById('game-timer');
-        if (timerEl) {
-            timerEl.innerText = '00:00';
-        }
 
         this.timerInterval = setInterval(() => {
             const timeDiff = Date.now() - this.startTime;
-            const minutes = Math.floor(timeDiff / 60000);
-            const seconds = Math.floor((timeDiff % 60000) / 1000);
+            this.currentRemainingTime = Math.max(0, this.initialDuration - timeDiff);
+
+            const minutes = Math.floor(this.currentRemainingTime / 60000);
+            const seconds = Math.floor((this.currentRemainingTime % 60000) / 1000);
             const displayMin = String(minutes).padStart(2, '0');
             const displaySec = String(seconds).padStart(2, '0');
 
             if (timerEl) {
                 timerEl.innerText = `${displayMin}:${displaySec}`;
+            }
+
+            // 残り時間がゼロになった場合
+            if (this.currentRemainingTime <= 0) {
+                this.stopTimer();
+                this.onTimeUp();
             }
         }, 250); // 0.25秒ごとに画面表示を更新
     }
@@ -491,6 +520,63 @@ class KinekoGame {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+    }
+
+    onTimeUp() {
+        // 盤面を一時停止状態にする
+        this.isTransitioning = true;
+        
+        // タイムアップモーダルを表示
+        document.getElementById('timeup-modal').style.display = 'flex';
+    }
+
+    watchAd() {
+        // タイムアップモーダルを隠す
+        document.getElementById('timeup-modal').style.display = 'none';
+
+        // 広告モーダルを表示
+        const adModal = document.getElementById('ad-modal');
+        const progressBar = document.getElementById('ad-progress-bar');
+        const countdownEl = document.getElementById('ad-countdown');
+        
+        adModal.style.display = 'flex';
+        progressBar.style.width = '0%';
+        
+        let timeLeft = 3;
+        countdownEl.innerText = timeLeft;
+
+        // 1秒ごとにカウントダウンするタイマー
+        const adInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft >= 0) {
+                countdownEl.innerText = timeLeft;
+            }
+        }, 1000);
+
+        // プログレスバーのアニメーション (3秒間)
+        const startTime = Date.now();
+        const duration = 3000; // 3秒
+
+        const updateProgress = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(100, (elapsed / duration) * 100);
+            progressBar.style.width = `${progress}%`;
+
+            if (elapsed < duration) {
+                requestAnimationFrame(updateProgress);
+            } else {
+                // 広告終了処理
+                clearInterval(adInterval);
+                adModal.style.display = 'none';
+                this.isTransitioning = false; // 操作を再開可能にする
+                
+                // +1分（60000ミリ秒）延長してタイマー再開
+                this.currentRemainingTime = 60000;
+                this.startTimer(this.currentRemainingTime);
+            }
+        };
+
+        requestAnimationFrame(updateProgress);
     }
 }
 
