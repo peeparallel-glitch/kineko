@@ -13,7 +13,15 @@
     <div id="title-screen" class="title-screen">
         <h1 class="main-title">KINEKO REBORN</h1>
         <p class="subtitle">Video Loop Puzzle</p>
-        <div class="mode-container">
+
+        <!-- ピースの形状選択トグル -->
+        <div class="shape-select-container">
+            <span class="shape-label">ピースの形状:</span>
+            <button id="btn-shape-square" class="btn btn-shape active">通常 ⬛</button>
+            <button id="btn-shape-jigsaw" class="btn btn-shape">ジグソー 🧩</button>
+        </div>
+
+        <div class="mode-container" id="normal-modes">
             <div class="mode-section">
                 <h2 class="mode-title">通常モード</h2>
                 <div class="difficulty-select">
@@ -31,13 +39,23 @@
                 </div>
             </div>
         </div>
+
+        <div class="mode-container" id="jigsaw-modes" style="display: none;">
+            <div class="mode-section" style="width: 100%; align-items: center;">
+                <h2 class="mode-title" style="color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);">鬼畜モード 👹</h2>
+                <div class="difficulty-select" style="flex-direction: row; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn diff-btn" id="btn-jigsaw-normal" style="background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.4);">通常モード (16x9)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-jigsaw-hell" style="background: rgba(255, 59, 48, 0.2); border-color: #ff3b30;">ヘルモード (16x9) 💀</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="app" style="display: none;">
         <div class="game-main-area">
             <main class="puzzle-container">
                 <div id="puzzle-board"></div>
-                <video id="completed-video" loop muted playsinline class="completed-video" style="display: none;"></video>
+                <video id="completed-video" loop playsinline class="completed-video" style="display: none;"></video>
                 <div id="result-overlay" class="overlay">Stage Clear</div>
             </main>
         </div>
@@ -63,7 +81,7 @@
             <div class="preview-inner">
                 <button id="preview-close" class="preview-close-btn">&times;</button>
                 <p class="preview-label">完成図</p>
-                <video id="preview-video" autoplay loop muted playsinline class="preview-video"></video>
+                <video id="preview-video" loop playsinline class="preview-video"></video>
             </div>
         </div>
 
