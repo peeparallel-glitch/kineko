@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KINEKO REBORN | Video Loop Puzzle</title>
+    <title>うごくジグソー | Moving Jigsaw</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,14 +11,18 @@
     <video id="shared-video" loop muted playsinline style="display: none;"></video>
 
     <div id="title-screen" class="title-screen">
-        <h1 class="main-title">KINEKO REBORN</h1>
-        <p class="subtitle">Video Loop Puzzle</p>
+        <h1 class="main-title">うごくジグソー</h1>
+        <p class="subtitle">Moving Jigsaw</p>
 
         <!-- ピースの形状選択トグル -->
         <div class="shape-select-container">
             <span class="shape-label">ピースの形状:</span>
             <button id="btn-shape-square" class="btn btn-shape active">通常 ⬛</button>
             <button id="btn-shape-jigsaw" class="btn btn-shape">ジグソー 🧩</button>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <button id="btn-records" class="btn" style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700;">タイムレコード 🏆</button>
         </div>
 
         <div class="mode-container" id="normal-modes">
@@ -63,6 +67,7 @@
         <footer class="controls">
             <div id="stage-title" class="stage-title">Stage 1: Loading...</div>
             <div id="game-timer" class="game-timer">00:00</div>
+            <div id="elapsed-timer" class="elapsed-timer" style="font-size: 0.95rem; color: #aaa; margin-bottom: 10px;">経過時間: 00:00</div>
             
             <!-- ヘルモード用の反転トグルボタン -->
             <div id="flip-controls" class="flip-controls" style="display: none;">
@@ -105,6 +110,17 @@
                     <div id="ad-progress-bar" class="ad-progress-bar"></div>
                 </div>
                 <p class="ad-tip">あと <span id="ad-countdown">3</span> 秒で終了します</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- タイムレコード表示モーダル (タイトル画面からアクセスするため#appの外側、<body>直下に配置) -->
+    <div id="records-modal" class="preview-modal" style="display:none; z-index: 3000;">
+        <div class="preview-inner" style="max-width: 600px; max-height: 80vh; overflow-y: auto; background: rgba(13, 13, 13, 0.98); border: 2px solid #ffd700; border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); width: 90%;">
+            <button id="records-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+            <h2 style="color: #ffd700; margin-bottom: 20px; text-align: center; font-size: 1.6rem; letter-spacing: 2px;">タイムレコード 🏆</h2>
+            <div id="records-content" style="width: 100%; color: #fff; line-height: 1.6;">
+                <!-- ここにJSで動的にレコードを表示 -->
             </div>
         </div>
     </div>

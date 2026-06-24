@@ -98,6 +98,12 @@ body {
     -webkit-backface-visibility: hidden;
 }
 
+/* ジグソーパズルのホバー（カーソルが乗ったとき）のふち色付け（選択用の水色と異なるマゼンタ） */
+.piece.jigsaw-piece:not(.selected):not(.locked):hover {
+    filter: drop-shadow(0 0 3px #ff00ff) drop-shadow(0 0 8px #ff00ff) drop-shadow(0 0 15px #ff00ff) brightness(1.25);
+    z-index: 2; /* 境界が分かりやすいように手前に表示 */
+}
+
 .piece video {
     position: absolute;
     pointer-events: none;

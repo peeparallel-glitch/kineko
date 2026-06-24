@@ -1,14 +1,18 @@
 const STAGES = [
-    { title: "Metoro Video", videoUrl: "metoro.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Toudai Video", videoUrl: "toudai.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Robotto", videoUrl: "robtto.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Dog", videoUrl: "dog.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Meri-", videoUrl: "meri-.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Hanabi", videoUrl: "hanabi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Fuusya", videoUrl: "fuusya.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Funsui", videoUrl: "funsui.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Hiyoko", videoUrl: "hiyoko.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "Kamo", videoUrl: "kamo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 }
+    { title: "Metoro Video", videoUrl: "IMG/metoro.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Toudai Video", videoUrl: "IMG/toudai.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Robotto", videoUrl: "IMG/robtto.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Dog", videoUrl: "IMG/dog.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Meri-", videoUrl: "IMG/meri-.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Hanabi", videoUrl: "IMG/hanabi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Fuusya", videoUrl: "IMG/fuusya.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Funsui", videoUrl: "IMG/funsui.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Hiyoko", videoUrl: "IMG/hiyoko.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kamo", videoUrl: "IMG/kamo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Robo", videoUrl: "IMG/robo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Digital Battle", videoUrl: "IMG/digital battle.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kousaten", videoUrl: "IMG/kousaten.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kingyo", videoUrl: "IMG/kinngyo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 }
 ];
 
 class KinekoGame {
@@ -194,6 +198,12 @@ class KinekoGame {
         this.overlay.style.display = 'none';
         this.createBoard(stage);
         
+        // 経過時間変数のリセットと初期表示
+        this.accumulatedElapsedTime = 0;
+        this.currentTurnStartTime = null;
+        const elapsedTimerEl = document.getElementById('elapsed-timer');
+        if (elapsedTimerEl) elapsedTimerEl.innerText = "経過時間: 00:00";
+        
         // 制限時間をデフォルト（5分）にリセットしてカウントダウン開始
         this.currentRemainingTime = this.defaultRemainingTime;
         this.startTimer(this.currentRemainingTime);
@@ -273,6 +283,9 @@ class KinekoGame {
     createPiece(correctIndex, rows, cols, edgeTabs = [0, 0, 0, 0]) {
         const canvas = document.createElement('canvas');
         canvas.className = 'piece';
+        if (this.isJigsawMode) {
+            canvas.classList.add('jigsaw-piece');
+        }
         canvas.dataset.correctIndex = correctIndex;
         canvas.dataset.currentIndex = correctIndex;
         canvas.dataset.flipH = "false"; // 左右反転フラグ
@@ -328,7 +341,7 @@ class KinekoGame {
         this.pieceHeight = boardHeight / stage.rows;
 
         this.pieces.forEach(piece => {
-            const padding = this.isJigsawMode ? Math.min(this.pieceWidth, this.pieceHeight) * 0.18 : 0;
+            const padding = this.isJigsawMode ? Math.min(this.pieceWidth, this.pieceHeight) * 0.28 : 0;
             piece.style.width = `${this.pieceWidth + 2 * padding}px`;
             piece.style.height = `${this.pieceHeight + 2 * padding}px`;
             piece.style.position = 'absolute';
@@ -345,7 +358,7 @@ class KinekoGame {
         
         const scaleX = piece.dataset.flipH === "true" ? -1 : 1;
         const scaleY = piece.dataset.flipV === "true" ? -1 : 1;
-        const padding = this.isJigsawMode ? Math.min(this.pieceWidth, this.pieceHeight) * 0.18 : 0;
+        const padding = this.isJigsawMode ? Math.min(this.pieceWidth, this.pieceHeight) * 0.28 : 0;
 
         // translate3dとscaleを組み合わせて描画。ジグソー時はパディング分だけ左上にシフトして配置
         piece.style.transform = `translate3d(${c * this.pieceWidth - padding}px, ${r * this.pieceHeight - padding}px, 0) scale(${scaleX}, ${scaleY})`;
@@ -480,6 +493,9 @@ class KinekoGame {
         this.isTransitioning = true;
         this.stopTimer(); // タイマーをストップ
 
+        // レコードの自動保存
+        this.saveClearRecord(this.accumulatedElapsedTime);
+
         // 1枚の完成版動画に切り替えて音声付きで再生する
         const stage = STAGES[this.currentStageIndex];
         this.completedVideo.src = stage.videoUrl;
@@ -525,6 +541,36 @@ class KinekoGame {
         this.loadStage(nextIdx);
     }
 
+    saveClearRecord(elapsedTimeMs) {
+        let modeKey = "";
+        if (this.isJigsawMode) {
+            modeKey = this.isHellMode ? "jigsaw_hell" : "jigsaw_normal";
+        } else {
+            const diffName = this.globalGridSize === 3 ? "easy" : this.globalGridSize === 4 ? "normal" : "hard";
+            modeKey = this.isHellMode ? `square_${diffName}_hell` : `square_${diffName}`;
+        }
+        
+        const recordsStr = localStorage.getItem('kineko_records');
+        let records = {};
+        if (recordsStr) {
+            try {
+                records = JSON.parse(recordsStr);
+            } catch (e) {
+                console.error("Failed to parse records", e);
+            }
+        }
+        
+        const recordKey = `stage_${this.currentStageIndex}_${modeKey}`;
+        const previousRecord = records[recordKey];
+        
+        // 初回記録、または今回のタイムがこれまでのベストレコードより短い場合に更新
+        if (previousRecord === undefined || elapsedTimeMs < previousRecord) {
+            records[recordKey] = elapsedTimeMs;
+            localStorage.setItem('kineko_records', JSON.stringify(records));
+            console.log(`New record saved for ${recordKey}: ${elapsedTimeMs}ms`);
+        }
+    }
+
     /**
      * ジグソーピースのシルエットを描く Path2D を生成する。
      * タブは楕円の膨らみ（bezierCurveTo）で表現。
@@ -538,10 +584,7 @@ class KinekoGame {
      */
     buildJigsawPath(pw, ph, pad, tabTop, tabRight, tabBottom, tabLeft) {
         const path = new Path2D();
-        // タブの膨らみ比率
-        const tabSize = Math.min(pw, ph) * 0.28;
-        const tabNeck  = 0.28; // ネックの幅（比率）
-        const tabHead  = 0.5;  // 頭部の高さ（比率）
+        const s = Math.min(pw, ph) * 0.22; // タブの基準サイズ
 
         // 描画開始座標（パディングを原点として、ピース実領域の角）
         const x0 = pad, y0 = pad;
@@ -552,11 +595,21 @@ class KinekoGame {
         if (tabTop !== 0) {
             const mx = x0 + pw * 0.5;
             const dir = tabTop; // 1=上へ凸, -1=下へ凹
-            path.lineTo(mx - pw * tabNeck, y0);
+            path.lineTo(mx - s * 0.75, y0);
             path.bezierCurveTo(
-                mx - pw * tabNeck, y0 - dir * tabSize * tabHead,
-                mx + pw * tabNeck, y0 - dir * tabSize * tabHead,
-                mx + pw * tabNeck, y0
+                mx - s * 0.75, y0 - dir * s * 0.2,
+                mx - s * 1.3,  y0 - dir * s * 0.5,
+                mx - s * 0.6,  y0 - dir * s * 0.9
+            );
+            path.bezierCurveTo(
+                mx - s * 0.1,  y0 - dir * s * 1.2,
+                mx + s * 0.1,  y0 - dir * s * 1.2,
+                mx + s * 0.6,  y0 - dir * s * 0.9
+            );
+            path.bezierCurveTo(
+                mx + s * 1.3,  y0 - dir * s * 0.5,
+                mx + s * 0.75, y0 - dir * s * 0.2,
+                mx + s * 0.75, y0
             );
         }
         path.lineTo(x1, y0);
@@ -564,12 +617,22 @@ class KinekoGame {
         // ─── 右辺（上から下） ───
         if (tabRight !== 0) {
             const my = y0 + ph * 0.5;
-            const dir = tabRight;
-            path.lineTo(x1, my - ph * tabNeck);
+            const dir = tabRight; // 1=右へ凸, -1=左へ凹
+            path.lineTo(x1, my - s * 0.75);
             path.bezierCurveTo(
-                x1 + dir * tabSize * tabHead, my - ph * tabNeck,
-                x1 + dir * tabSize * tabHead, my + ph * tabNeck,
-                x1, my + ph * tabNeck
+                x1 + dir * s * 0.2, my - s * 0.75,
+                x1 + dir * s * 0.5, my - s * 1.3,
+                x1 + dir * s * 0.9, my - s * 0.6
+            );
+            path.bezierCurveTo(
+                x1 + dir * s * 1.2, my - s * 0.1,
+                x1 + dir * s * 1.2, my + s * 0.1,
+                x1 + dir * s * 0.9, my + s * 0.6
+            );
+            path.bezierCurveTo(
+                x1 + dir * s * 0.5, my + s * 1.3,
+                x1 + dir * s * 0.2, my + s * 0.75,
+                x1,                 my + s * 0.75
             );
         }
         path.lineTo(x1, y1);
@@ -577,12 +640,22 @@ class KinekoGame {
         // ─── 下辺（右から左） ───
         if (tabBottom !== 0) {
             const mx = x0 + pw * 0.5;
-            const dir = -tabBottom; // 下辺は右→左なので方向反転
-            path.lineTo(mx + pw * tabNeck, y1);
+            const dir = -tabBottom; // 下辺は進行方向が逆のため符号反転
+            path.lineTo(mx + s * 0.75, y1);
             path.bezierCurveTo(
-                mx + pw * tabNeck, y1 + dir * tabSize * tabHead,
-                mx - pw * tabNeck, y1 + dir * tabSize * tabHead,
-                mx - pw * tabNeck, y1
+                mx + s * 0.75, y1 + dir * s * 0.2,
+                mx + s * 1.3,  y1 + dir * s * 0.5,
+                mx + s * 0.6,  y1 + dir * s * 0.9
+            );
+            path.bezierCurveTo(
+                mx + s * 0.1,  y1 + dir * s * 1.2,
+                mx - s * 0.1,  y1 + dir * s * 1.2,
+                mx - s * 0.6,  y1 + dir * s * 0.9
+            );
+            path.bezierCurveTo(
+                mx - s * 1.3,  y1 + dir * s * 0.5,
+                mx - s * 0.75, y1 + dir * s * 0.2,
+                mx - s * 0.75, y1
             );
         }
         path.lineTo(x0, y1);
@@ -590,12 +663,22 @@ class KinekoGame {
         // ─── 左辺（下から上） ───
         if (tabLeft !== 0) {
             const my = y0 + ph * 0.5;
-            const dir = -tabLeft; // 左辺は下→上なので方向反転
-            path.lineTo(x0, my + ph * tabNeck);
+            const dir = -tabLeft; // 左辺は進行方向が逆のため符号反転
+            path.lineTo(x0, my + s * 0.75);
             path.bezierCurveTo(
-                x0 + dir * tabSize * tabHead, my + ph * tabNeck,
-                x0 + dir * tabSize * tabHead, my - ph * tabNeck,
-                x0, my - ph * tabNeck
+                x0 - dir * s * 0.2, my + s * 0.75,
+                x0 - dir * s * 0.5, my + s * 1.3,
+                x0 - dir * s * 0.9, my + s * 0.6
+            );
+            path.bezierCurveTo(
+                x0 - dir * s * 1.2, my + s * 0.1,
+                x0 - dir * s * 1.2, my - s * 0.1,
+                x0 - dir * s * 0.9, my - s * 0.6
+            );
+            path.bezierCurveTo(
+                x0 - dir * s * 0.5, my - s * 1.3,
+                x0 - dir * s * 0.2, my - s * 0.75,
+                x0,                 my - s * 0.75
             );
         }
         path.closePath();
@@ -617,7 +700,7 @@ class KinekoGame {
                     const c = correctIdx % cols;
 
                     const padding = this.isJigsawMode
-                        ? Math.min(this.pieceWidth, this.pieceHeight) * 0.18
+                        ? Math.min(this.pieceWidth, this.pieceHeight) * 0.28
                         : 0;
                     const canvasW = this.pieceWidth  + 2 * padding;
                     const canvasH = this.pieceHeight + 2 * padding;
@@ -709,28 +792,48 @@ class KinekoGame {
 
     startTimer(duration) {
         this.stopTimer(); // 既存のタイマーを破棄
-        this.startTime = Date.now();
+        this.currentTurnStartTime = Date.now();
         this.initialDuration = duration; // カウントダウン開始時の残り時間
 
         const timerEl = document.getElementById('game-timer');
+        const elapsedTimerEl = document.getElementById('elapsed-timer');
+
+        // ジグソーモードの場合は制限時間タイマーを非表示にする
+        if (this.isJigsawMode) {
+            if (timerEl) timerEl.style.display = 'none';
+        } else {
+            if (timerEl) timerEl.style.display = 'block';
+        }
 
         this.timerInterval = setInterval(() => {
-            const timeDiff = Date.now() - this.startTime;
-            this.currentRemainingTime = Math.max(0, this.initialDuration - timeDiff);
+            if (!this.currentTurnStartTime) return;
+            const timeDiff = Date.now() - this.currentTurnStartTime;
+            
+            if (!this.isJigsawMode) {
+                // 制限時間（カウントダウン）: 通常ピースモードのみ実行
+                this.currentRemainingTime = Math.max(0, this.initialDuration - timeDiff);
+                const minutes = Math.floor(this.currentRemainingTime / 60000);
+                const seconds = Math.floor((this.currentRemainingTime % 60000) / 1000);
+                const displayMin = String(minutes).padStart(2, '0');
+                const displaySec = String(seconds).padStart(2, '0');
 
-            const minutes = Math.floor(this.currentRemainingTime / 60000);
-            const seconds = Math.floor((this.currentRemainingTime % 60000) / 1000);
-            const displayMin = String(minutes).padStart(2, '0');
-            const displaySec = String(seconds).padStart(2, '0');
+                if (timerEl) {
+                    timerEl.innerText = `${displayMin}:${displaySec}`;
+                }
 
-            if (timerEl) {
-                timerEl.innerText = `${displayMin}:${displaySec}`;
+                // 残り時間がゼロになった場合
+                if (this.currentRemainingTime <= 0) {
+                    this.stopTimer();
+                    this.onTimeUp();
+                }
             }
 
-            // 残り時間がゼロになった場合
-            if (this.currentRemainingTime <= 0) {
-                this.stopTimer();
-                this.onTimeUp();
+            // 経過時間（トータルプレイ時間）
+            const totalElapsed = this.accumulatedElapsedTime + timeDiff;
+            const elapsedMin = String(Math.floor(totalElapsed / 60000)).padStart(2, '0');
+            const elapsedSec = String(Math.floor((totalElapsed % 60000) / 1000)).padStart(2, '0');
+            if (elapsedTimerEl) {
+                elapsedTimerEl.innerText = `経過時間: ${elapsedMin}:${elapsedSec}`;
             }
         }, 250); // 0.25秒ごとに画面表示を更新
     }
@@ -739,6 +842,10 @@ class KinekoGame {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
+        }
+        if (this.currentTurnStartTime) {
+            this.accumulatedElapsedTime += Date.now() - this.currentTurnStartTime;
+            this.currentTurnStartTime = null;
         }
     }
 
@@ -884,4 +991,174 @@ document.addEventListener('DOMContentLoaded', () => {
     // 鬼畜モードの難易度選択
     document.getElementById('btn-jigsaw-normal').addEventListener('click', () => startGame(16, false));
     document.getElementById('btn-jigsaw-hell').addEventListener('click', () => startGame(16, true));
+
+    // タイムレコードモーダル開閉イベント
+    const recordsBtn = document.getElementById('btn-records');
+    const recordsModal = document.getElementById('records-modal');
+    const recordsClose = document.getElementById('records-close');
+
+    const showRecordsModal = () => {
+        const content = document.getElementById('records-content');
+        if (!content) return;
+
+        const recordsStr = localStorage.getItem('kineko_records');
+        let records = {};
+        if (recordsStr) {
+            try {
+                records = JSON.parse(recordsStr);
+            } catch (e) {}
+        }
+
+        const formatTime = (ms) => {
+            if (ms === undefined || ms === null) return "--:--";
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        };
+
+        let html = `
+            <div class="records-tabs" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ffd700; padding-bottom: 10px;">
+                <button id="tab-rec-square" class="btn" style="flex: 1; border-radius: 6px; background: rgba(255, 215, 0, 0.2); font-size: 0.9rem; padding: 8px;">通常 ⬛</button>
+                <button id="tab-rec-jigsaw" class="btn" style="flex: 1; border-radius: 6px; background: transparent; font-size: 0.9rem; padding: 8px;">ジグソー 🧩</button>
+            </div>
+            
+            <div id="rec-square-section">
+                <h3 style="color: #ffd700; margin-bottom: 15px; text-align: center; font-size: 1.1rem;">通常ピースの記録</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                <th style="padding: 8px 4px;">ステージ</th>
+                                <th style="padding: 8px 4px; color: #aaffaa;">3x3</th>
+                                <th style="padding: 8px 4px; color: #ffffaa;">4x4</th>
+                                <th style="padding: 8px 4px; color: #ffaaaa;">5x5</th>
+                                <th style="padding: 8px 4px; color: #ff7777;">3x3H</th>
+                                <th style="padding: 8px 4px; color: #ff5555;">4x4H</th>
+                                <th style="padding: 8px 4px; color: #ff3333;">5x5H</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        STAGES.forEach((stage, idx) => {
+            const t3 = records[`stage_${idx}_square_easy`];
+            const t4 = records[`stage_${idx}_square_normal`];
+            const t5 = records[`stage_${idx}_square_hard`];
+            const t3h = records[`stage_${idx}_square_easy_hell`];
+            const t4h = records[`stage_${idx}_square_normal_hell`];
+            const t5h = records[`stage_${idx}_square_hard_hell`];
+
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 8px 4px; font-weight: bold;">St.${idx+1}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t3)}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t4)}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t5)}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t3h)}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t4h)}</td>
+                    <td style="padding: 8px 4px;">${formatTime(t5h)}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="rec-jigsaw-section" style="display: none;">
+                <h3 style="color: #ff3b30; margin-bottom: 15px; text-align: center; font-size: 1.1rem;">鬼畜(ジグソー)の記録</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+                                <th style="padding: 10px 6px;">ステージ</th>
+                                <th style="padding: 10px 6px; color: #ff8888;">通常 (16x9)</th>
+                                <th style="padding: 10px 6px; color: #ff3333;">ヘル (16x9) 💀</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        STAGES.forEach((stage, idx) => {
+            const tj = records[`stage_${idx}_jigsaw_normal`];
+            const tjh = records[`stage_${idx}_jigsaw_hell`];
+
+            html += `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 10px 6px; font-weight: bold;">St.${idx+1}</td>
+                    <td style="padding: 10px 6px;">${formatTime(tj)}</td>
+                    <td style="padding: 10px 6px;">${formatTime(tjh)}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                <button id="records-reset" class="btn" style="padding: 6px 15px; font-size: 0.8rem; background: rgba(255,0,0,0.15); border-color: rgba(255,0,0,0.4); color: #ff8888;">全レコード削除</button>
+            </div>
+        `;
+
+        content.innerHTML = html;
+
+        // タブ切り替え処理
+        const tabSquare = document.getElementById('tab-rec-square');
+        const tabJigsaw = document.getElementById('tab-rec-jigsaw');
+        const secSquare = document.getElementById('rec-square-section');
+        const secJigsaw = document.getElementById('rec-jigsaw-section');
+
+        tabSquare.addEventListener('click', () => {
+            secSquare.style.display = 'block';
+            secJigsaw.style.display = 'none';
+            tabSquare.style.background = 'rgba(255, 215, 0, 0.2)';
+            tabJigsaw.style.background = 'transparent';
+        });
+
+        tabJigsaw.addEventListener('click', () => {
+            secSquare.style.display = 'none';
+            secJigsaw.style.display = 'block';
+            tabJigsaw.style.background = 'rgba(255, 215, 0, 0.2)';
+            tabSquare.style.background = 'transparent';
+        });
+
+        // レコード削除処理
+        document.getElementById('records-reset').addEventListener('click', () => {
+            if (confirm("本当に全てのタイムレコードを消去しますか？")) {
+                localStorage.removeItem('kineko_records');
+                showRecordsModal();
+            }
+        });
+
+        recordsModal.style.display = 'flex';
+    };
+
+    if (recordsBtn && recordsModal && recordsClose) {
+        recordsBtn.addEventListener('click', () => {
+            try {
+                showRecordsModal();
+            } catch (err) {
+                alert("レコードの表示中にエラーが発生しました: " + err.message);
+                console.error(err);
+            }
+        });
+
+        const closeRecords = () => {
+            recordsModal.style.display = 'none';
+        };
+
+        recordsClose.addEventListener('click', closeRecords);
+        recordsModal.addEventListener('click', (e) => {
+            if (e.target === recordsModal) {
+                closeRecords();
+            }
+        });
+    } else {
+        console.error("レコードモーダル表示に必要なHTML要素が見つかりません。");
+    }
 });
