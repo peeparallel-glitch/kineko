@@ -199,10 +199,22 @@ body {
     flex-direction: column;
     justify-content: flex-start; /* center から flex-start に変更 */
     align-items: center;
-    background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d0d 100%);
+    background: rgba(0, 0, 0, 0.2); /* 動画が透けて見えるよう半透明に設定 */
     z-index: 1000;
     overflow-y: auto;
     padding: 30px 10px; /* パディング調整 */
+}
+
+/* タイトル背景動画用のスタイル */
+#title-bg-video {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .title-screen .main-title {
@@ -613,5 +625,86 @@ body {
 .ad-tip {
     font-size: 0.9rem;
     opacity: 0.7;
+}
+
+/* メインメニュー画面専用：スタートボタン等を画面の上下中央に配置する */
+#main-menu-screen {
+    justify-content: center;
+    padding: 0;
+}
+
+/* タイトル画面の選択肢ボタン背景を黒に変更 */
+.title-screen .btn,
+.title-screen .diff-btn {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* タイトル画面ボタンのホバー挙動 */
+.title-screen .btn:hover,
+.title-screen .diff-btn:hover {
+    background-color: var(--accent-color) !important;
+    color: #000000 !important;
+    border-color: var(--accent-color) !important;
+    transform: scale(1.05);
+}
+
+/* ヘルモード難易度ボタンの枠線とホバー */
+.title-screen .btn-hell {
+    border-color: rgba(255, 0, 60, 0.6) !important;
+    color: #ff3366 !important;
+}
+.title-screen .btn-hell:hover {
+    background-color: #ff003c !important;
+    color: #ffffff !important;
+    border-color: #ff003c !important;
+}
+
+/* 通常・ジグソー ピース形状トグルボタンの調整 */
+.title-screen .btn-shape {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: #888888 !important;
+}
+.title-screen .btn-shape:hover {
+    color: #ffffff !important;
+}
+.title-screen .btn-shape.active {
+    background-color: var(--accent-color) !important;
+    color: #000000 !important;
+    border-color: var(--accent-color) !important;
+}
+
+/* ピース形状トグルコンテナの黒背景化 */
+.shape-select-container {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* モードセクション（通常モード・ヘルモード）の黒背景カード化 */
+.mode-section {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 16px;
+    padding: 20px 25px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* ヘルモードセクションの特別枠線 */
+.mode-section.hell-section {
+    border-color: rgba(255, 0, 60, 0.3) !important;
+    box-shadow: 0 8px 32px rgba(255, 0, 60, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 鬼畜モードセクションの特別枠線 */
+#jigsaw-modes .mode-section {
+    width: 100%;
+    max-width: 550px;
+    border-color: rgba(255, 59, 48, 0.4) !important;
+    box-shadow: 0 8px 32px rgba(255, 59, 48, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
 

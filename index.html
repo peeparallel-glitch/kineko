@@ -10,46 +10,66 @@
     <!-- 共通の隠しビデオ要素（Canvas描画用、デコード負荷を1本分に抑える） -->
     <video id="shared-video" loop muted playsinline style="display: none;"></video>
 
-    <div id="title-screen" class="title-screen">
-        <h1 class="main-title">うごくジグソー</h1>
-        <p class="subtitle">Moving Jigsaw</p>
+    <!-- タイトル画面のBGM -->
+    <audio id="title-bgm" src="BGM/OP.mp3" loop></audio>
+
+    <!-- タイトル画面の背景動画 -->
+    <video id="title-bg-video" src="taitoru.mp4" autoplay loop muted playsinline></video>
+
+    <!-- ステージBGM（ゲーム中に再生、デフォルトはstageD） -->
+    <audio id="stage-bgm" src="BGM/stageD.mp3" loop></audio>
+
+    <!-- メインメニュー画面（新規追加 of 初期画面、英語表記） -->
+    <div id="main-menu-screen" class="title-screen">
+        <div style="height: 280px;"></div> <!-- タイトル画像内の文字と被らないよう上部にスペースを十分に確保 -->
+        <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem; align-items: center;">
+            <button id="btn-start" class="btn diff-btn" style="width: 240px; font-size: 1.1rem; background: rgba(0, 242, 255, 0.15); border-color: var(--accent-color); color: var(--accent-color);" data-i18n="btn_start">START</button>
+            <button id="btn-settings" class="btn diff-btn" style="width: 240px; font-size: 1.1rem;" data-i18n="btn_settings">SETTINGS</button>
+            <button id="btn-lang" class="btn diff-btn" style="width: 240px; font-size: 1.1rem;" data-i18n="btn_language">LANGUAGE</button>
+        </div>
+    </div>
+
+    <!-- モード・難易度選択画面（元のタイトル画面、初期は非表示に設定） -->
+    <div id="title-screen" class="title-screen" style="display: none;">
+        <div style="height: 280px;"></div> <!-- タイトル画像内の文字と被らないよう上部にスペースを十分に確保 -->
 
         <!-- ピースの形状選択トグル -->
         <div class="shape-select-container">
-            <span class="shape-label">ピースの形状:</span>
-            <button id="btn-shape-square" class="btn btn-shape active">通常 ⬛</button>
-            <button id="btn-shape-jigsaw" class="btn btn-shape">ジグソー 🧩</button>
+            <span class="shape-label" data-i18n="shape_select">ピースの形状:</span>
+            <button id="btn-shape-square" class="btn btn-shape active" data-i18n="shape_square">通常 ⬛</button>
+            <button id="btn-shape-jigsaw" class="btn btn-shape" data-i18n="shape_jigsaw">ジグソー 🧩</button>
         </div>
 
-        <div style="margin-bottom: 2rem;">
-            <button id="btn-records" class="btn" style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700;">タイムレコード 🏆</button>
+        <div style="margin-bottom: 2rem; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button id="btn-records" class="btn" style="background: rgba(255, 215, 0, 0.15); border-color: #ffd700; color: #ffd700;" data-i18n="btn_records">タイムレコード 🏆</button>
+            <button id="btn-back-to-main" class="btn" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.2); color: #aaaaaa;" data-i18n="back_to_title">タイトルへ</button>
         </div>
 
         <div class="mode-container" id="normal-modes">
             <div class="mode-section">
-                <h2 class="mode-title">通常モード</h2>
+                <h2 class="mode-title" data-i18n="normal_mode">通常モード</h2>
                 <div class="difficulty-select">
-                    <button class="btn diff-btn" id="btn-easy">イージー (3x3)</button>
-                    <button class="btn diff-btn" id="btn-normal">ノーマル (4x4)</button>
-                    <button class="btn diff-btn" id="btn-hard">ハード (5x5)</button>
+                    <button class="btn diff-btn" id="btn-easy" data-i18n="easy">イージー (3x3)</button>
+                    <button class="btn diff-btn" id="btn-normal" data-i18n="normal">ノーマル (4x4)</button>
+                    <button class="btn diff-btn" id="btn-hard" data-i18n="hard">ハード (5x5)</button>
                 </div>
             </div>
             <div class="mode-section hell-section">
-                <h2 class="mode-title hell-title">ヘルモード 💀</h2>
+                <h2 class="mode-title hell-title" data-i18n="hell_mode">ヘルモード 💀</h2>
                 <div class="difficulty-select">
-                    <button class="btn diff-btn btn-hell" id="btn-easy-hell">イージー (3x3)</button>
-                    <button class="btn diff-btn btn-hell" id="btn-normal-hell">ノーマル (4x4)</button>
-                    <button class="btn diff-btn btn-hell" id="btn-hard-hell">ハード (5x5)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-easy-hell" data-i18n="easy">イージー (3x3)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-normal-hell" data-i18n="normal">ノーマル (4x4)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-hard-hell" data-i18n="hard">ハード (5x5)</button>
                 </div>
             </div>
         </div>
 
         <div class="mode-container" id="jigsaw-modes" style="display: none;">
             <div class="mode-section" style="width: 100%; align-items: center;">
-                <h2 class="mode-title" style="color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);">鬼畜モード 👹</h2>
+                <h2 class="mode-title" style="color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);" data-i18n="jigsaw_title">鬼畜モード 👹</h2>
                 <div class="difficulty-select" style="flex-direction: row; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn diff-btn" id="btn-jigsaw-normal" style="background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.4);">通常モード (16x9)</button>
-                    <button class="btn diff-btn btn-hell" id="btn-jigsaw-hell" style="background: rgba(255, 59, 48, 0.2); border-color: #ff3b30;">ヘルモード (16x9) 💀</button>
+                    <button class="btn diff-btn" id="btn-jigsaw-normal" style="background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.4);" data-i18n="jigsaw_normal">通常モード (16x9)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-jigsaw-hell" style="background: rgba(255, 59, 48, 0.2); border-color: #ff3b30;" data-i18n="jigsaw_hell">ヘルモード (16x9) 💀</button>
                 </div>
             </div>
         </div>
@@ -60,32 +80,32 @@
             <main class="puzzle-container">
                 <div id="puzzle-board"></div>
                 <video id="completed-video" loop playsinline class="completed-video" style="display: none;"></video>
-                <div id="result-overlay" class="overlay">Stage Clear</div>
+                <div id="result-overlay" class="overlay" data-i18n="stage_clear">Stage Clear</div>
             </main>
         </div>
 
         <footer class="controls">
             <div id="stage-title" class="stage-title">Stage 1: Loading...</div>
             <div id="game-timer" class="game-timer">00:00</div>
-            <div id="elapsed-timer" class="elapsed-timer" style="font-size: 0.95rem; color: #aaa; margin-bottom: 10px;">経過時間: 00:00</div>
+            <div id="elapsed-timer" class="elapsed-timer" style="font-size: 0.95rem; color: #aaa; margin-bottom: 10px;" data-i18n="elapsed_time" data-i18n-val="00:00">経過時間: 00:00</div>
             
             <!-- ヘルモード用の反転トグルボタン -->
             <div id="flip-controls" class="flip-controls" style="display: none;">
-                <button id="btn-flip-h" class="btn btn-flip">⇔ 左右</button>
-                <button id="btn-flip-v" class="btn btn-flip">⇕ 上下</button>
+                <button id="btn-flip-h" class="btn btn-flip" data-i18n="flip_h">⇔ 左右</button>
+                <button id="btn-flip-v" class="btn btn-flip" data-i18n="flip_v">⇕ 上下</button>
             </div>
             
-            <button id="next-btn" class="btn">スキップ</button>
-            <button id="reload-btn" class="btn">リロード</button>
-            <button id="preview-btn" class="btn btn-preview">完成図</button>
-            <button id="back-to-title-btn" class="btn btn-back-title">タイトルへ</button>
+            <button id="next-btn" class="btn" data-i18n="skip">スキップ</button>
+            <button id="reload-btn" class="btn" data-i18n="reload">リロード</button>
+            <button id="preview-btn" class="btn btn-preview" data-i18n="preview">完成図</button>
+            <button id="back-to-title-btn" class="btn btn-back-title" data-i18n="back_to_title">タイトルへ</button>
         </footer>
 
         <!-- 完成図モーダル -->
         <div id="preview-modal" class="preview-modal" style="display:none;">
             <div class="preview-inner">
                 <button id="preview-close" class="preview-close-btn">&times;</button>
-                <p class="preview-label">完成図</p>
+                <p class="preview-label" data-i18n="preview">完成図</p>
                 <video id="preview-video" loop playsinline class="preview-video"></video>
             </div>
         </div>
@@ -94,10 +114,10 @@
         <div id="timeup-modal" class="timeup-modal" style="display:none;">
             <div class="timeup-inner">
                 <h2 class="timeup-title">TIME UP</h2>
-                <p class="timeup-text">制限時間内にクリアできませんでした。</p>
+                <p class="timeup-text" data-i18n="timeup_text">制限時間内にクリアできませんでした。</p>
                 <div class="timeup-buttons">
-                    <button id="ad-btn" class="btn btn-ad">広告を見て +1分延長 📺</button>
-                    <button id="retry-stage-btn" class="btn btn-retry">再挑戦</button>
+                    <button id="ad-btn" class="btn btn-ad" data-i18n="ad_extend">広告を見て +1分延長 📺</button>
+                    <button id="retry-stage-btn" class="btn btn-retry" data-i18n="retry">再挑戦</button>
                 </div>
             </div>
         </div>
@@ -105,11 +125,67 @@
         <!-- 疑似広告再生用モーダル -->
         <div id="ad-modal" class="ad-modal" style="display:none;">
             <div class="ad-inner">
-                <p class="ad-status">広告を再生中...</p>
+                <p class="ad-status" data-i18n="ad_playing">広告を再生中...</p>
                 <div class="ad-progress-container">
                     <div id="ad-progress-bar" class="ad-progress-bar"></div>
                 </div>
-                <p class="ad-tip">あと <span id="ad-countdown">3</span> 秒で終了します</p>
+                <p class="ad-tip" data-i18n="ad_countdown" data-i18n-val="3">あと <span id="ad-countdown">3</span> 秒で終了します</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 設定（音量調整）モーダル (タイトル画面から別窓で開くため#appの外側に配置) -->
+    <div id="settings-modal" class="preview-modal" style="display:none; z-index: 3000;">
+        <div class="preview-inner" style="max-width: 400px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
+            <button id="settings-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="settings_title">SETTINGS</h2>
+            
+            <div style="text-align: center; margin-bottom: 18px;">
+                <button id="btn-show-guide" class="btn" style="width: 100%; padding: 10px;" data-i18n="btn_guide">ゲーム説明 📖</button>
+            </div>
+
+            <div style="margin-bottom: 20px; color: #fff;">
+                <label style="display: block; margin-bottom: 10px; font-size: 0.95rem;" data-i18n="stage_bgm_label">ステージBGM 🎵</label>
+                <select id="stage-bgm-select" style="width: 100%; padding: 8px 10px; background: #111; border: 1px solid rgba(0,242,255,0.4); border-radius: 6px; color: #fff; font-size: 0.95rem; cursor: pointer;">
+                    <option value="stageA" style="background: #111; color: #fff;">Stage A</option>
+                    <option value="stageB1" style="background: #111; color: #fff;">Stage B1</option>
+                    <option value="stageB2" style="background: #111; color: #fff;">Stage B2</option>
+                    <option value="stageC" style="background: #111; color: #fff;">Stage C</option>
+                    <option value="stageD" selected style="background: #111; color: #fff;">Stage D (Default)</option>
+                    <option value="stageE" style="background: #111; color: #fff;">Stage E</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 10px; color: #fff;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.95rem;" data-i18n="bgm_volume">BGM Volume</label>
+                <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--accent-color);">
+            </div>
+        </div>
+    </div>
+
+    <!-- ゲーム説明（遊び方説明書）モーダル (別窓で開くため#appの外側に配置) -->
+    <div id="guide-modal" class="preview-modal" style="display:none; z-index: 3100;">
+        <div class="preview-inner" style="max-width: 480px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
+            <button id="guide-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="guide_title">HOW TO PLAY</h2>
+            
+            <div id="game-guide-text" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; font-size: 0.85rem; line-height: 1.6; color: #dddddd; text-align: left; max-height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);" data-i18n="game_guide"></div>
+        </div>
+    </div>
+
+    <!-- 言語選択モーダル (タイトル画面から別窓で開くため#appの外側に配置) -->
+    <div id="language-modal" class="preview-modal" style="display:none; z-index: 3000;">
+        <div class="preview-inner" style="max-width: 400px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
+            <button id="language-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
+            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="language_title">LANGUAGE</h2>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn lang-select-btn" data-lang="ja" style="width: 100%; padding: 10px; font-size: 1rem;">日本語</button>
+                <button class="btn lang-select-btn" data-lang="en" style="width: 100%; padding: 10px; font-size: 1rem;">English</button>
+                <button class="btn lang-select-btn" data-lang="zh" style="width: 100%; padding: 10px; font-size: 1rem;">简体中文</button>
+                <button class="btn lang-select-btn" data-lang="ko" style="width: 100%; padding: 10px; font-size: 1rem;">한국어</button>
+                <button class="btn lang-select-btn" data-lang="fr" style="width: 100%; padding: 10px; font-size: 1rem;">Français</button>
             </div>
         </div>
     </div>
