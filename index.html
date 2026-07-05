@@ -2,11 +2,20 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- モバイルフルスクリーン対応設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="うごくジグソー">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="manifest.json">
+    
     <title>うごくジグソー | Moving Jigsaw</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <!-- 共通の隠しビデオ要素（Canvas描画用、デコード負荷を1本分に抑える） -->
     <video id="shared-video" loop muted playsinline style="display: none;"></video>
 
@@ -21,17 +30,17 @@
 
     <!-- メインメニュー画面（新規追加 of 初期画面、英語表記） -->
     <div id="main-menu-screen" class="title-screen">
-        <div style="height: 280px;"></div> <!-- タイトル画像内の文字と被らないよう上部にスペースを十分に確保 -->
-        <div style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 2rem; align-items: center;">
-            <button id="btn-start" class="btn diff-btn" style="width: 240px; font-size: 1.1rem; background: rgba(0, 242, 255, 0.15); border-color: var(--accent-color); color: var(--accent-color);" data-i18n="btn_start">START</button>
-            <button id="btn-settings" class="btn diff-btn" style="width: 240px; font-size: 1.1rem;" data-i18n="btn_settings">SETTINGS</button>
-            <button id="btn-lang" class="btn diff-btn" style="width: 240px; font-size: 1.1rem;" data-i18n="btn_language">LANGUAGE</button>
+        <div style="height: 35vh;"></div> <!-- 画面サイズに合わせて上部スペースを確保 -->
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; align-items: center;">
+            <button id="btn-start" class="btn diff-btn" style="width: 300px; font-size: 1.05rem; background: rgba(0, 242, 255, 0.15); border-color: var(--accent-color); color: var(--accent-color);" data-i18n="btn_start">START</button>
+            <button id="btn-settings" class="btn diff-btn" style="width: 300px; font-size: 1.05rem;" data-i18n="btn_settings">SETTINGS</button>
+            <button id="btn-lang" class="btn diff-btn" style="width: 300px; font-size: 1.05rem;" data-i18n="btn_language">LANGUAGE</button>
         </div>
     </div>
 
     <!-- モード・難易度選択画面（元のタイトル画面、初期は非表示に設定） -->
     <div id="title-screen" class="title-screen" style="display: none;">
-        <div style="height: 280px;"></div> <!-- タイトル画像内の文字と被らないよう上部にスペースを十分に確保 -->
+        <div style="height: 35vh;"></div> <!-- 画面サイズに合わせて上部スペースを確保 -->
 
         <!-- ピースの形状選択トグル -->
         <div class="shape-select-container">
@@ -122,17 +131,39 @@
             </div>
         </div>
 
-        <!-- 疑似広告再生用モーダル -->
+        <!-- リワード広告モーダル（時間延長用）ca-app-pub-3940256099942544/5224354917 -->
         <div id="ad-modal" class="ad-modal" style="display:none;">
             <div class="ad-inner">
+                <div id="admob-reward-container" style="width:100%;min-height:250px;display:flex;align-items:center;justify-content:center;background:#000;border-radius:8px;margin-bottom:12px;position:relative;">
+                    <p style="color:#aaa;font-size:0.85rem;text-align:center;">📺 リワード広告<br><span style="font-size:0.7rem;opacity:0.5;">ca-app-pub-3940256099942544/5224354917</span></p>
+                </div>
                 <p class="ad-status" data-i18n="ad_playing">広告を再生中...</p>
                 <div class="ad-progress-container">
                     <div id="ad-progress-bar" class="ad-progress-bar"></div>
                 </div>
-                <p class="ad-tip" data-i18n="ad_countdown" data-i18n-val="3">あと <span id="ad-countdown">3</span> 秒で終了します</p>
+                <p class="ad-tip" data-i18n="ad_countdown" data-i18n-val="30">あと <span id="ad-countdown">30</span> 秒で終了します</p>
             </div>
         </div>
 
+    </div>
+
+    <!-- インタースティシャル広告モーダル（タイトルへ戻る際に表示）ca-app-pub-3940256099942544/1033173712 -->
+    <div id="interstitial-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.97); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="width:90%; max-width:480px; background:#111; border-radius:12px; overflow:hidden; box-shadow:0 0 40px rgba(0,0,0,0.8);">
+            <!-- 広告エリア -->
+            <div id="admob-interstitial-container" style="width:100%; min-height:320px; background:#000; display:flex; align-items:center; justify-content:center; position:relative;">
+                <div style="text-align:center; color:#aaa;">
+                    <p style="font-size:1rem;">📢 広告</p>
+                    <p style="font-size:0.7rem; opacity:0.5; margin-top:8px;">ca-app-pub-3940256099942544/1033173712</p>
+                </div>
+            </div>
+            <!-- スキップカウントダウン -->
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#1a1a1a;">
+                <span style="color:#aaa; font-size:0.85rem;" id="interstitial-status">広告をご覧ください...</span>
+                <button id="interstitial-skip-btn" class="btn" style="padding:8px 18px; font-size:0.85rem; display:none;" onclick="document.getElementById('interstitial-modal').style.display='none'; window._interstitialCallback && window._interstitialCallback();">スキップ ✕</button>
+                <span id="interstitial-countdown" style="color:#fff; font-size:1rem; font-weight:bold; min-width:30px; text-align:center;">5</span>
+            </div>
+        </div>
     </div>
 
     <!-- 設定（音量調整）モーダル (タイトル画面から別窓で開くため#appの外側に配置) -->

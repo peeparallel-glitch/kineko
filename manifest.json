@@ -1,0 +1,9 @@
+{
+  "name": "うごくジグソー Moving Jigsaw",
+  "short_name": "うごくジグソー",
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d"
+}

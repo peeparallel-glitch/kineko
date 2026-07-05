@@ -21,14 +21,22 @@ body {
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
+    overflow: hidden; /* スクロールを禁止しフィットさせる */
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--text-color);
-    overflow: auto;
     display: flex;
     flex-direction: column;
+}
+
+/* フルスクリーン時はpadding不要 */
+:fullscreen html,
+:fullscreen body,
+:-webkit-full-screen html,
+:-webkit-full-screen body {
+    padding: 0 !important;
 }
 
 /* 縦横レイアウトの基本 */
@@ -37,8 +45,8 @@ body {
     flex-direction: row; /* 横並びにする */
     width: 100%;
     height: 100%;
-    padding: 10px;
-    gap: 10px;
+    padding: 0; /* 余白を完全に削除 */
+    gap: 5px;   /* 隙間を詰める */
 }
 
 .game-main-area {
@@ -188,21 +196,20 @@ body {
     user-select: none;
 }
 
-/* タイトル画面 */
 .title-screen {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    min-height: 100%; /* height: 100% から min-height に変更し、縦スクロールを可能に */
+    height: 100%; /* 全画面固定に修正 */
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* center から flex-start に変更 */
+    justify-content: flex-start;
     align-items: center;
     background: rgba(0, 0, 0, 0.2); /* 動画が透けて見えるよう半透明に設定 */
     z-index: 1000;
-    overflow-y: auto;
-    padding: 30px 10px; /* パディング調整 */
+    overflow: hidden; /* スクロールを禁止 */
+    padding: 10px; /* パディングを縮小 */
 }
 
 /* タイトル背景動画用のスタイル */
@@ -627,10 +634,10 @@ body {
     opacity: 0.7;
 }
 
-/* メインメニュー画面専用：スタートボタン等を画面の上下中央に配置する */
+/* メインメニュー画面専用：スタートボタン等を画面の適切な位置に配置する */
 #main-menu-screen {
-    justify-content: center;
-    padding: 0;
+    justify-content: flex-start;
+    padding: 10px;
 }
 
 /* タイトル画面の選択肢ボタン背景を黒に変更 */
@@ -707,4 +714,101 @@ body {
     border-color: rgba(255, 59, 48, 0.4) !important;
     box-shadow: 0 8px 32px rgba(255, 59, 48, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
+
+/* 画面の高さが低い横画面端末（スマホの横持ちなど）への最適化 */
+@media (max-height: 500px) {
+    #title-screen {
+        padding: 5px !important;
+    }
+    
+    #title-screen [style*="height: 35vh"] {
+        height: 8vh !important; /* 余白をさらに削ってボタン用スペースを確保 */
+    }
+
+    .shape-select-container {
+        margin-bottom: 0.6rem !important;
+        padding: 5px 15px !important;
+        gap: 10px !important;
+    }
+
+    .shape-label {
+        font-size: 0.9rem !important;
+    }
+
+    .btn-shape {
+        font-size: 0.85rem !important;
+        padding: 5px 14px !important;
+    }
+
+    #title-screen .btn {
+        font-size: 0.9rem !important;
+        padding: 6px 14px !important;
+    }
+
+    #title-screen .diff-btn {
+        width: 180px !important; /* 150pxから180pxに拡大 */
+        padding: 7px 10px !important;
+        font-size: 0.9rem !important; /* 0.8remから0.9remに拡大 */
+    }
+
+    /* タイムレコード等のボタンコンテナ */
+    #title-screen div[style*="margin-bottom: 2rem"] {
+        margin-bottom: 0.6rem !important;
+        gap: 10px !important;
+    }
+
+    .mode-container {
+        gap: 20px !important;
+    }
+
+    .mode-section {
+        padding: 10px 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .mode-title {
+        font-size: 1rem !important; /* 0.9remから1remに拡大 */
+        margin-bottom: 8px !important;
+    }
+
+    .difficulty-select {
+        gap: 0.5rem !important;
+    }
+
+    /* ゲーム中右側UIコントロールパネルの縮小 */
+    .controls {
+        gap: 6px !important;     /* 各要素の間隔をコンパクト化 */
+        padding: 5px !important;  /* パネルのパディングを縮小 */
+    }
+
+    .stage-title {
+        font-size: 0.85rem !important; /* ステージ名のフォントサイズを縮小 */
+        margin-bottom: 5px !important;  /* 下部余白を削減 */
+    }
+
+    .game-timer {
+        font-size: 1.2rem !important;  /* 制限時間タイマーをコンパクトに */
+    }
+
+    .elapsed-timer {
+        font-size: 0.75rem !important; /* 経過時間表示をコンパクトに */
+        margin-bottom: 4px !important;
+    }
+
+    .controls .btn {
+        font-size: 0.8rem !important;  /* 各種操作ボタンのフォントサイズを縮小 */
+        padding: 6px 12px !important;  /* ボタン内部の余白を縮小 */
+    }
+
+    .flip-controls {
+        gap: 5px !important;           /* 反転トグルボタン同士の間隔を縮小 */
+        margin-bottom: 2px !important;
+    }
+
+    .btn-flip {
+        padding: 4px 8px !important;   /* 反転ボタンのサイズを縮小 */
+        font-size: 0.75rem !important;
+    }
+}
+
 

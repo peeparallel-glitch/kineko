@@ -402,55 +402,60 @@ class KinekoGame {
 
         // タイトルへ戻るボタンのイベント登録
         document.getElementById('back-to-title-btn').addEventListener('click', () => {
-            this.stopTimer();
-            if (this.drawLoopId) {
-                cancelAnimationFrame(this.drawLoopId);
-                this.drawLoopId = null;
-            }
-            this.sharedVideo.pause();
-            this.sharedVideo.src = '';
-            this.completedVideo.pause();
-            this.completedVideo.muted = true; // 音声をリセット
-            this.completedVideo.src = '';
+            // ====== インタースティシャル広告表示後にタイトルへ遷移 ======
+            showInterstitialAd(() => {
+                this.stopTimer();
+                if (this.drawLoopId) {
+                    cancelAnimationFrame(this.drawLoopId);
+                    this.drawLoopId = null;
+                }
+                this.sharedVideo.pause();
+                this.sharedVideo.src = '';
+                this.completedVideo.pause();
+                this.completedVideo.muted = true;
+                this.completedVideo.src = '';
 
-            // 完成図モーダルが開いていた場合も閉じる
-            const previewModal = document.getElementById('preview-modal');
-            const previewVideo = document.getElementById('preview-video');
-            previewModal.style.display = 'none';
-            previewVideo.pause();
-            previewVideo.muted = true;
-            previewVideo.src = '';
+                // 完成図モーダルが開いていた場合も閉じる
+                const previewModal = document.getElementById('preview-modal');
+                const previewVideo = document.getElementById('preview-video');
+                previewModal.style.display = 'none';
+                previewVideo.pause();
+                previewVideo.muted = true;
+                previewVideo.src = '';
 
-            // モーダルを非表示
-            document.getElementById('timeup-modal').style.display = 'none';
-            document.getElementById('ad-modal').style.display = 'none';
-            this.isTransitioning = false;
+                // モーダルを非表示
+                document.getElementById('timeup-modal').style.display = 'none';
+                document.getElementById('ad-modal').style.display = 'none';
+                this.isTransitioning = false;
 
-            // 画面の表示切り替え
-            document.getElementById('app').style.display = 'none';
-            document.getElementById('title-screen').style.display = 'flex';
+                // 画面の表示切り替え
+                document.getElementById('app').style.display = 'none';
+                document.getElementById('title-screen').style.display = 'flex';
 
-            // タイトル背景動画を表示して再生
-            const titleBgVideo = document.getElementById('title-bg-video');
-            if (titleBgVideo) {
-                titleBgVideo.style.display = 'block';
-                titleBgVideo.play().catch(err => console.log('Title video play failed:', err));
-            }
+                // タイトル背景動画を表示して再生
+                const titleBgVideo = document.getElementById('title-bg-video');
+                if (titleBgVideo) {
+                    titleBgVideo.style.display = 'block';
+                    titleBgVideo.play().catch(err => console.log('Title video play failed:', err));
+                }
 
-            // ステージBGMを停止
-            const stageBgmBack = document.getElementById('stage-bgm');
-            if (stageBgmBack && !stageBgmBack.paused) {
-                stageBgmBack.pause();
-                stageBgmBack.currentTime = 0;
-            }
+                // ステージBGMを停止
+                const stageBgmBack = document.getElementById('stage-bgm');
+                if (stageBgmBack && !stageBgmBack.paused) {
+                    stageBgmBack.pause();
+                    stageBgmBack.currentTime = 0;
+                }
 
-            // タイトルBGMを再開
-            const titleBgm = document.getElementById('title-bgm');
-            if (titleBgm) {
-                titleBgm.currentTime = 0;
-                titleBgm.play().catch(err => console.log('BGM play failed:', err));
-            }
-        });
+                // タイトルBGMを再開
+                const titleBgm = document.getElementById('title-bgm');
+                if (titleBgm) {
+                    titleBgm.currentTime = 0;
+                    titleBgm.play().catch(err => console.log('BGM play failed:', err));
+                }
+            }); // showInterstitialAd コールバック終了
+        }); // back-to-title-btn クリックハンドラ終了
+
+
 
         // 描画ループを開始
         this.startDrawingLoop();
@@ -1174,28 +1179,31 @@ class KinekoGame {
         // タイムアップモーダルを隠す
         document.getElementById('timeup-modal').style.display = 'none';
 
-        // 広告モーダルを表示
+        // ====== リワード広告（ca-app-pub-3940256099942544/5224354917）======
         const adModal = document.getElementById('ad-modal');
         const progressBar = document.getElementById('ad-progress-bar');
         const countdownEl = document.getElementById('ad-countdown');
-        
+
         adModal.style.display = 'flex';
         progressBar.style.width = '0%';
-        
-        let timeLeft = 3;
+
+        const AD_DURATION = 30; // リワード広告は30秒
+        let timeLeft = AD_DURATION;
         countdownEl.innerText = timeLeft;
 
-        // 1秒ごとにカウントダウンするタイマー
+        // AdMob リワード広告ロード試行（WebView環境・将来のネイティブ対応用）
+        if (window.admob && window.admob.rewardVideo) {
+            window.admob.rewardVideo.load({ id: 'ca-app-pub-3940256099942544/5224354917' });
+            window.admob.rewardVideo.show().catch(() => {});
+        }
+
         const adInterval = setInterval(() => {
             timeLeft--;
-            if (timeLeft >= 0) {
-                countdownEl.innerText = timeLeft;
-            }
+            if (timeLeft >= 0) countdownEl.innerText = timeLeft;
         }, 1000);
 
-        // プログレスバーのアニメーション (3秒間)
         const startTime = Date.now();
-        const duration = 3000; // 3秒
+        const duration = AD_DURATION * 1000;
 
         const updateProgress = () => {
             const elapsed = Date.now() - startTime;
@@ -1205,11 +1213,9 @@ class KinekoGame {
             if (elapsed < duration) {
                 requestAnimationFrame(updateProgress);
             } else {
-                // 広告終了処理
                 clearInterval(adInterval);
                 adModal.style.display = 'none';
-                this.isTransitioning = false; // 操作を再開可能にする
-                
+                this.isTransitioning = false;
                 // +1分（60000ミリ秒）延長してタイマー再開
                 this.currentRemainingTime = 60000;
                 this.startTimer(this.currentRemainingTime);
@@ -1220,11 +1226,60 @@ class KinekoGame {
     }
 }
 
+// ====== インタースティシャル広告表示関数（ca-app-pub-3940256099942544/1033173712）======
+function showInterstitialAd(callback) {
+    const modal = document.getElementById('interstitial-modal');
+    const countdownEl = document.getElementById('interstitial-countdown');
+    const skipBtn = document.getElementById('interstitial-skip-btn');
+    const statusEl = document.getElementById('interstitial-status');
+
+    if (!modal) { callback(); return; }
+
+    // AdMob インタースティシャルロード試行（WebView環境・将来のネイティブ対応用）
+    if (window.admob && window.admob.interstitial) {
+        window.admob.interstitial.load({ id: 'ca-app-pub-3940256099942544/1033173712' });
+        window.admob.interstitial.show()
+            .then(() => callback())
+            .catch(() => runFallback());
+        return;
+    }
+
+    // フォールバック：カウントダウン付き広告オーバーレイ表示
+    runFallback();
+
+    function runFallback() {
+        window._interstitialCallback = callback;
+        modal.style.display = 'flex';
+        skipBtn.style.display = 'none';
+        statusEl.textContent = '広告をご覧ください...';
+
+        let sec = 5;
+        countdownEl.textContent = sec;
+
+        const timer = setInterval(() => {
+            sec--;
+            countdownEl.textContent = sec;
+            if (sec <= 0) {
+                clearInterval(timer);
+                skipBtn.style.display = 'inline-block';
+                countdownEl.textContent = '';
+                statusEl.textContent = 'スキップできます';
+            }
+        }, 1000);
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // タイトルBGMの参照
     const titleBgm = document.getElementById('title-bgm');
     if (titleBgm) {
         titleBgm.volume = 0.7;
+    }
+
+    // 起動時に可能な場合は自動で横画面ロックを試みる
+    if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock('landscape').catch(() => {});
     }
 
     // 画面のどこかを初めて触った（タップした）瞬間に自動的にフルスクリーン＆横画面にする
@@ -1241,7 +1296,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (docEl.requestFullscreen) {
                     docEl.requestFullscreen().then(lockLandscape).catch(() => {});
                 } else if (docEl.webkitRequestFullscreen) {
+                    // iOS Safari 向け（効かない場合もあるが試みる）
                     docEl.webkitRequestFullscreen();
+                    setTimeout(lockLandscape, 200);
+                } else if (docEl.mozRequestFullScreen) {
+                    docEl.mozRequestFullScreen();
+                    setTimeout(lockLandscape, 200);
+                } else if (docEl.msRequestFullscreen) {
+                    docEl.msRequestFullscreen();
                     setTimeout(lockLandscape, 200);
                 }
             } else {
@@ -1257,9 +1319,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // タイトル画面タップでのフルスクリーン化イベントを登録（初回のみ）
-    document.addEventListener('click', triggerFullscreen, { once: true });
-    document.addEventListener('touchstart', triggerFullscreen, { once: true });
+    // あらゆるユーザーインタラクションでフルスクリーンを発動（確実に動作させるため複数登録）
+    ['click', 'touchstart', 'touchend', 'pointerdown'].forEach(evtType => {
+        document.addEventListener(evtType, triggerFullscreen, { once: true, passive: true });
+    });
+
+    // フルスクリーンが外れた場合（ESCキー等）に自動で再フルスクリーンへ誘導
+    const onFullscreenChange = () => {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            // フルスクリーン復帰ボタンを追加（次の操作時に再フルスクリーン化）
+            ['click', 'touchstart'].forEach(evtType => {
+                document.addEventListener(evtType, triggerFullscreen, { once: true, passive: true });
+            });
+        }
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
 
     // ジグソーモードの選択状態を管理
     let isJigsawSelected = false;
@@ -1693,4 +1768,61 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error("レコードモーダル表示に必要なHTML要素が見つかりません。");
     }
+
+    // バックグラウンド・フォアグラウンド切り替え時の音声一時停止・再開制御
+    let wasTitleBgmPlayingBeforeHidden = false;
+    let wasStageBgmPlayingBeforeHidden = false;
+    const stageBgmElement = document.getElementById('stage-bgm');
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // バックグラウンドに移行した時
+            // 1. タイトルBGM
+            if (titleBgm && !titleBgm.paused) {
+                titleBgm.pause();
+                wasTitleBgmPlayingBeforeHidden = true;
+            } else {
+                wasTitleBgmPlayingBeforeHidden = false;
+            }
+
+            // 2. ステージBGM
+            if (stageBgmElement && !stageBgmElement.paused) {
+                stageBgmElement.pause();
+                wasStageBgmPlayingBeforeHidden = true;
+            } else {
+                wasStageBgmPlayingBeforeHidden = false;
+            }
+
+            // 3. タイトル背景動画
+            const titleBgVideo = document.getElementById('title-bg-video');
+            if (titleBgVideo && !titleBgVideo.paused) {
+                titleBgVideo.pause();
+            }
+
+            // 4. 完成図プレビュー動画
+            const previewVideo = document.getElementById('preview-video');
+            if (previewVideo && !previewVideo.paused) {
+                previewVideo.pause();
+            }
+        } else {
+            // フォアグラウンドに戻ってきた時
+            // 1. タイトルBGMの復元
+            if (wasTitleBgmPlayingBeforeHidden && titleBgm) {
+                titleBgm.play().catch(err => console.log('Title BGM resume failed:', err));
+            }
+
+            // 2. ステージBGMの復元
+            if (wasStageBgmPlayingBeforeHidden && stageBgmElement) {
+                stageBgmElement.play().catch(err => console.log('Stage BGM resume failed:', err));
+            }
+
+            // 3. タイトル背景動画の復元（タイトル画面が表示されている時のみ）
+            const isGameActive = document.getElementById('app').style.display === 'flex';
+            const titleBgVideo = document.getElementById('title-bg-video');
+            if (titleBgVideo && !isGameActive) {
+                titleBgVideo.play().catch(err => console.log('Title video resume failed:', err));
+            }
+        }
+    });
 });
+
