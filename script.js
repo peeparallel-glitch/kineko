@@ -524,6 +524,23 @@ class KinekoGame {
         // 制限時間をデフォルト（5分）にリセットしてカウントダウン開始
         this.currentRemainingTime = this.defaultRemainingTime;
         this.startTimer(this.currentRemainingTime);
+
+        // スキップボタン（next-btn）の有効・無効化制御
+        const nextBtn = document.getElementById('next-btn');
+        if (nextBtn) {
+            const isCleared = this.isStageClearedAnywhere(index);
+            if (isCleared) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.pointerEvents = 'auto';
+                nextBtn.style.cursor = 'pointer';
+            } else {
+                nextBtn.disabled = true;
+                nextBtn.style.opacity = '0.3';
+                nextBtn.style.pointerEvents = 'none';
+                nextBtn.style.cursor = 'default';
+            }
+        }
     }
 
     createBoard(stage) {
@@ -858,6 +875,23 @@ class KinekoGame {
         this.loadStage(nextIdx);
     }
 
+    isStageClearedAnywhere(stageIndex) {
+        const recordsStr = localStorage.getItem('kineko_records');
+        if (!recordsStr) return false;
+        try {
+            const records = JSON.parse(recordsStr);
+            const prefix = `stage_${stageIndex}_`;
+            for (let key in records) {
+                if (key.startsWith(prefix) && records[key] !== undefined) {
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to parse records", e);
+        }
+        return false;
+    }
+
     saveClearRecord(elapsedTimeMs) {
         let modeKey = "";
         if (this.isJigsawMode) {
@@ -1179,6 +1213,16 @@ class KinekoGame {
         // タイムアップモーダルを隠す
         document.getElementById('timeup-modal').style.display = 'none';
 
+        // スマホ（モバイル端末）判定
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (!isMobile) {
+            // ウェブ版は広告を表示せず即座に1分延長して再開
+            this.isTransitioning = false;
+            this.currentRemainingTime = 60000;
+            this.startTimer(this.currentRemainingTime);
+            return;
+        }
+
         // ====== リワード広告（ca-app-pub-3940256099942544/5224354917）======
         const adModal = document.getElementById('ad-modal');
         const progressBar = document.getElementById('ad-progress-bar');
@@ -1228,6 +1272,14 @@ class KinekoGame {
 
 // ====== インタースティシャル広告表示関数（ca-app-pub-3940256099942544/1033173712）======
 function showInterstitialAd(callback) {
+    // スマホ（モバイル端末）判定
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (!isMobile) {
+        // ウェブ版は広告を表示せず即座にタイトルへ戻る
+        callback();
+        return;
+    }
+
     const modal = document.getElementById('interstitial-modal');
     const countdownEl = document.getElementById('interstitial-countdown');
     const skipBtn = document.getElementById('interstitial-skip-btn');
