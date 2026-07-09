@@ -1,0 +1,90 @@
+﻿    /**
+     * ジグソーピースのシルエットを描く Path2D を生成する。
+     * タブは楕円の膨らみ（bezierCurveTo）で表現。
+     * @param {number} pw - ピースの描画幅 (px)
+     * @param {number} ph - ピースの描画高さ (px)
+     * @param {number} pad - キャンバスのパディング量 (px)
+     * @param {number} tabTop    -                 // モバイル時の内部解像度スケール（0.5倍で面積約1/4、描画負荷が極限まで激減）
+                const resolutionScale = isMobile ? 0.5 : 1.0;
+                const bufferW = Math.round(canvasW * resolutionScale);
+                const bufferH = Math.round(canvasH * resolutionScale);
+
+                this.pieces.forEach(piece => {
+                    const ctx = piece.getContext('2d');
+                    const correctIdx = parseInt(piece.dataset.correctIndex);
+                    const r = Math.floor(correctIdx / cols);
+                    const c = correctIdx % cols;
+
+                    // canvas内部の描画バッファ解像度を設定
+                    if (piece.width !== bufferW || piece.height !== bufferH) {
+                        piece.width  = bufferW;
+                        piece.height = bufferH;
+                        this._jigsawPathCache.delete(correctIdx);
+                    }
+
+                    // CSS表示サイズは元の値を維持することでボケを防ぎつつ高速化
+                    const currentStyleW = canvasW + 'px';
+                    const currentStyleH = canvasH + 'px';
+                    if (piece.style.width !== currentStyleW || piece.style.height !== currentStyleH) {
+                        piece.style.width = currentStyleW;
+                        piece.style.height = currentStyleH;
+                    }
+
+                    ctx.clearRect(0, 0, bufferW, bufferH);
+
+                    if (this.isJigsawMode) {
+                        // キャッシュされたPathを再利用
+                        let jigsawPath = this._jigsawPathCache.get(correctIdx);
+                        if (!jigsawPath) {
+                            const tabTop    = parseFloat(piece.dataset.tabTop)    || 0;
+                            const tabRight  = parseFloat(piece.dataset.tabRight)  || 0;
+                            const tabBottom = parseFloat(piece.dataset.tabBottom) || 0;
+                            const tabLeft   = parseFloat(piece.dataset.tabLeft)   || 0;
+                            jigsawPath = this.buildJigsawPath(
+                                this.pieceWidth, this.pieceHeight,
+                                padding,
+                                tabTop, tabRight, tabBottom, tabLeft
+                            );
+                            this._jigsawPathCache.set(correctIdx, jigsawPath);
+                        }
+
+                        ctx.save();
+                        // 解像度スケールを適用して描画処理を軽量化
+                        if (resolutionScale !== 1.0) {
+                            ctx.scale(resolutionScale, resolutionScale);
+                        }
+
+                        // モバイルは画像平滑化を一時的にOFFにして描画スピードを優先
+                        if (isMobile) {
+                            ctx.imageSmoothingEnabled = false;
+                        }
+                        ctx.clip(jigsawPath);
+
+                        const padRatioW = padding / this.pieceWidth;
+                        const padRatioH = padding / this.pieceHeight;
+                        const srcPadW = padRatioW * sourcePieceW;
+                        const srcPadH = padRatioH * sourcePieceH;
+                        const idealSrcX = c * sourcePieceW - srcPadW;
+                        const idealSrcY = r * sourcePieceH - srcPadH;
+                        const clampedSrcX = Math.max(0, Math.min(idealSrcX, vW));
+                        const clampedSrcY = Math.max(0, Math.min(idealSrcY, vH));
+                        const dstOffX = (clampedSrcX - idealSrcX) / sourcePieceW * this.pieceWidth;
+                        const dstOffY = (clampedSrcY - idealSrcY) / sourcePieceH * this.pieceHeight;
+                        const idealSrcW = sourcePieceW * (1 + 2 * padRatioW);
+                        const idealSrcH = sourcePieceH * (1 + 2 * padRatioH);
+                        const clampedSrcW = Math.min(idealSrcW, vW - clampedSrcX);
+                        const clampedSrcH = Math.min(idealSrcH, vH - clampedSrcY);
+
+                        ctx.drawImage(
+                            this.sharedVideo,
+                            clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH,
+                            dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
+                        );
+
+                        // 輪郭線（stroke）は常に描画し判別可能にする
+                        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                        // 解像度スケールが小さくなっても物理的な太さが維持されるよう調整
+                        ctx.lineWidth = (isMobile ? 1.4 : 1.5) / resolutionScale;
+                        ctx.stroke(jigsawPath);
+
+                        ctx.restore();�ップを廃止し、滑らかさを最大化（常に毎フレーム描画）

@@ -2,35 +2,29 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <!-- モバイルフルスクリーン対応設定 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="うごくジグソー">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0d0d0d">
-    <link rel="manifest" href="manifest.json">
-    
-    <title>うごくジグソー | Moving Jigsaw</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>動くジグソーパズル - きね子</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <!-- 共通の隠しビデオ要素（Canvas描画用、デコード負荷を1本分に抑える） -->
+    <!-- 共通動画(非表示) -->
     <video id="shared-video" loop muted playsinline style="display: none;"></video>
 
-    <!-- タイトル画面のBGM -->
+    <!-- タイトル画面BGM -->
     <audio id="title-bgm" src="BGM/OP.mp3" loop></audio>
 
-    <!-- タイトル画面の背景動画 -->
+    <!-- タイトル画面背景動画 -->
     <video id="title-bg-video" src="taitoru.mp4" autoplay loop muted playsinline></video>
 
-    <!-- ステージBGM（ゲーム中に再生、デフォルトはstageD） -->
+    <!-- ステージBGM(ゲーム中に再生。デフォルトはstageD) -->
     <audio id="stage-bgm" src="BGM/stageD.mp3" loop></audio>
 
-    <!-- メインメニュー画面（新規追加 of 初期画面、英語表記） -->
+    <!-- メインメニュー画面 -->
     <div id="main-menu-screen" class="title-screen">
-        <div style="height: 35vh;"></div> <!-- 画面サイズに合わせて上部スペースを確保 -->
+        <div style="height: 35vh;"></div>
         <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; align-items: center;">
             <button id="btn-start" class="btn diff-btn" style="width: 300px; font-size: 1.05rem; background: rgba(0, 242, 255, 0.15); border-color: var(--accent-color); color: var(--accent-color);" data-i18n="btn_start">START</button>
             <button id="btn-settings" class="btn diff-btn" style="width: 300px; font-size: 1.05rem;" data-i18n="btn_settings">SETTINGS</button>
@@ -38,14 +32,14 @@
         </div>
     </div>
 
-    <!-- モード・難易度選択画面（元のタイトル画面、初期は非表示に設定） -->
+    <!-- 難易度選択画面 -->
     <div id="title-screen" class="title-screen" style="display: none;">
-        <div style="height: 35vh;"></div> <!-- 画面サイズに合わせて上部スペースを確保 -->
+        <div style="height: 35vh;"></div>
 
-        <!-- ピースの形状選択トグル -->
+        <!-- ピースの形状トグル -->
         <div class="shape-select-container">
             <span class="shape-label" data-i18n="shape_select">ピースの形状:</span>
-            <button id="btn-shape-square" class="btn btn-shape active" data-i18n="shape_square">通常 ⬛</button>
+            <button id="btn-shape-square" class="btn btn-shape active" data-i18n="shape_square">通常 □</button>
             <button id="btn-shape-jigsaw" class="btn btn-shape" data-i18n="shape_jigsaw">ジグソー 🧩</button>
         </div>
 
@@ -64,7 +58,7 @@
                 </div>
             </div>
             <div class="mode-section hell-section">
-                <h2 class="mode-title hell-title" data-i18n="hell_mode">ヘルモード 💀</h2>
+                <h2 class="mode-title hell-title" data-i18n="hell_mode">ヘルモード 🔥</h2>
                 <div class="difficulty-select">
                     <button class="btn diff-btn btn-hell" id="btn-easy-hell" data-i18n="easy">イージー (3x3)</button>
                     <button class="btn diff-btn btn-hell" id="btn-normal-hell" data-i18n="normal">ノーマル (4x4)</button>
@@ -75,10 +69,10 @@
 
         <div class="mode-container" id="jigsaw-modes" style="display: none;">
             <div class="mode-section" style="width: 100%; align-items: center;">
-                <h2 class="mode-title" style="color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);" data-i18n="jigsaw_title">鬼畜モード 👹</h2>
+                <h2 class="mode-title" style="color: #ff3b30; text-shadow: 0 0 10px rgba(255, 59, 48, 0.5);" data-i18n="jigsaw_title">鬼畜モード 💀</h2>
                 <div class="difficulty-select" style="flex-direction: row; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn diff-btn" id="btn-jigsaw-normal" style="background: rgba(255, 59, 48, 0.1); border-color: rgba(255, 59, 48, 0.4);" data-i18n="jigsaw_normal">通常モード (16x9)</button>
-                    <button class="btn diff-btn btn-hell" id="btn-jigsaw-hell" style="background: rgba(255, 59, 48, 0.2); border-color: #ff3b30;" data-i18n="jigsaw_hell">ヘルモード (16x9) 💀</button>
+                    <button class="btn diff-btn" id="btn-jigsaw-normal" data-i18n="jigsaw_normal">通常モード (16x9)</button>
+                    <button class="btn diff-btn btn-hell" id="btn-jigsaw-hell" data-i18n="jigsaw_hell">ヘルモード (16x9) 🔥</button>
                 </div>
             </div>
         </div>
@@ -100,8 +94,8 @@
             
             <!-- ヘルモード用の反転トグルボタン -->
             <div id="flip-controls" class="flip-controls" style="display: none;">
-                <button id="btn-flip-h" class="btn btn-flip" data-i18n="flip_h">⇔ 左右</button>
-                <button id="btn-flip-v" class="btn btn-flip" data-i18n="flip_v">⇕ 上下</button>
+                <button id="btn-flip-h" class="btn btn-flip" data-i18n="flip_h">↔ 左右</button>
+                <button id="btn-flip-v" class="btn btn-flip" data-i18n="flip_v">↕ 上下</button>
             </div>
             
             <button id="next-btn" class="btn" data-i18n="skip">スキップ</button>
@@ -119,58 +113,56 @@
             </div>
         </div>
 
-        <!-- タイムアップ（時間切れ）モーダル -->
+        <!-- タイムアップモーダル -->
         <div id="timeup-modal" class="timeup-modal" style="display:none;">
             <div class="timeup-inner">
                 <h2 class="timeup-title">TIME UP</h2>
                 <p class="timeup-text" data-i18n="timeup_text">制限時間内にクリアできませんでした。</p>
                 <div class="timeup-buttons">
-                    <button id="ad-btn" class="btn btn-ad" data-i18n="ad_extend">広告を見て +1分延長 📺</button>
+                    <button id="ad-btn" class="btn btn-ad" data-i18n="ad_extend">動画を見て +1分延長 🎬</button>
                     <button id="retry-stage-btn" class="btn btn-retry" data-i18n="retry">再挑戦</button>
                 </div>
             </div>
         </div>
 
-        <!-- リワード広告モーダル（時間延長用）ca-app-pub-3940256099942544/5224354917 -->
+        <!-- 広告動画シミュレータモーダル -->
         <div id="ad-modal" class="ad-modal" style="display:none;">
             <div class="ad-inner">
                 <div id="admob-reward-container" style="width:100%;min-height:250px;display:flex;align-items:center;justify-content:center;background:#000;border-radius:8px;margin-bottom:12px;position:relative;">
-                    <p style="color:#aaa;font-size:0.85rem;text-align:center;">📺 リワード広告<br><span style="font-size:0.7rem;opacity:0.5;">ca-app-pub-3940256099942544/5224354917</span></p>
+                    <p style="color:#aaa;font-size:0.85rem;text-align:center;">広告ロード中...<br><span style="font-size:0.7rem;opacity:0.5;">ca-app-pub-3940256099942544/5224354917</span></p>
                 </div>
-                <p class="ad-status" data-i18n="ad_playing">広告を再生中...</p>
+                <p class="ad-status" data-i18n="ad_playing">動画を再生中...</p>
                 <div class="ad-progress-container">
                     <div id="ad-progress-bar" class="ad-progress-bar"></div>
                 </div>
-                <p class="ad-tip" data-i18n="ad_countdown" data-i18n-val="30">あと <span id="ad-countdown">30</span> 秒で終了します</p>
+                <p class="ad-tip" data-i18n="ad_countdown" data-i18n-val="30">あと <span id="ad-countdown">30</span> 秒で終わります</p>
             </div>
         </div>
 
     </div>
 
-    <!-- インタースティシャル広告モーダル（タイトルへ戻る際に表示）ca-app-pub-3940256099942544/1033173712 -->
+    <!-- インタースティシャル広告シミュレータ -->
     <div id="interstitial-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.97); z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
         <div style="width:90%; max-width:480px; background:#111; border-radius:12px; overflow:hidden; box-shadow:0 0 40px rgba(0,0,0,0.8);">
-            <!-- 広告エリア -->
             <div id="admob-interstitial-container" style="width:100%; min-height:320px; background:#000; display:flex; align-items:center; justify-content:center; position:relative;">
                 <div style="text-align:center; color:#aaa;">
-                    <p style="font-size:1rem;">📢 広告</p>
+                    <p style="font-size:1rem;">広告ロード中...</p>
                     <p style="font-size:0.7rem; opacity:0.5; margin-top:8px;">ca-app-pub-3940256099942544/1033173712</p>
                 </div>
             </div>
-            <!-- スキップカウントダウン -->
             <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#1a1a1a;">
-                <span style="color:#aaa; font-size:0.85rem;" id="interstitial-status">広告をご覧ください...</span>
-                <button id="interstitial-skip-btn" class="btn" style="padding:8px 18px; font-size:0.85rem; display:none;" onclick="document.getElementById('interstitial-modal').style.display='none'; window._interstitialCallback && window._interstitialCallback();">スキップ ✕</button>
+                <span style="color:#aaa; font-size:0.85rem;" id="interstitial-status">広告再生中...</span>
+                <button id="interstitial-skip-btn" class="btn" style="padding:8px 18px; font-size:0.85rem; display:none;" onclick="document.getElementById('interstitial-modal').style.display='none'; window._interstitialCallback && window._interstitialCallback();">スキップ ⏭</button>
                 <span id="interstitial-countdown" style="color:#fff; font-size:1rem; font-weight:bold; min-width:30px; text-align:center;">5</span>
             </div>
         </div>
     </div>
 
-    <!-- 設定（音量調整）モーダル (タイトル画面から別窓で開くため#appの外側に配置) -->
+    <!-- 設定画面 -->
     <div id="settings-modal" class="preview-modal" style="display:none; z-index: 3000;">
         <div class="preview-inner" style="max-width: 400px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
             <button id="settings-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
-            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="settings_title">SETTINGS</h2>
+            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="settings_title">BGM設定・ゲーム説明</h2>
             
             <div style="text-align: center; margin-bottom: 18px;">
                 <button id="btn-show-guide" class="btn" style="width: 100%; padding: 10px;" data-i18n="btn_guide">ゲーム説明 📖</button>
@@ -179,38 +171,36 @@
             <div style="margin-bottom: 20px; color: #fff;">
                 <label style="display: block; margin-bottom: 10px; font-size: 0.95rem;" data-i18n="stage_bgm_label">ステージBGM 🎵</label>
                 <select id="stage-bgm-select" style="width: 100%; padding: 8px 10px; background: #111; border: 1px solid rgba(0,242,255,0.4); border-radius: 6px; color: #fff; font-size: 0.95rem; cursor: pointer;">
-                    <option value="stageA" style="background: #111; color: #fff;">Stage A</option>
-                    <option value="stageB1" style="background: #111; color: #fff;">Stage B1</option>
-                    <option value="stageB2" style="background: #111; color: #fff;">Stage B2</option>
-                    <option value="stageC" style="background: #111; color: #fff;">Stage C</option>
-                    <option value="stageD" selected style="background: #111; color: #fff;">Stage D (Default)</option>
-                    <option value="stageE" style="background: #111; color: #fff;">Stage E</option>
+                    <option value="stageD" selected style="background: #111; color: #fff;">Clockwork Sugar Trail (Default)</option>
+                    <option value="stageA" style="background: #111; color: #fff;">Clockwork Mushroom Parade</option>
+                    <option value="stageB1" style="background: #111; color: #fff;">Late Train Notebook1</option>
+                    <option value="stageB2" style="background: #111; color: #fff;">Late Train Notebook2</option>
+                    <option value="stageC" style="background: #111; color: #fff;">Starbyte Bazaar</option>
+                    <option value="stageE" style="background: #111; color: #fff;">Moonlit Save Point</option>
                 </select>
             </div>
 
             <div style="margin-bottom: 10px; color: #fff;">
-                <label style="display: block; margin-bottom: 8px; font-size: 0.95rem;" data-i18n="bgm_volume">BGM Volume</label>
+                <label style="display: block; margin-bottom: 8px; font-size: 0.95rem;" data-i18n="bgm_volume">BGM 音量</label>
                 <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.7" style="width: 100%; accent-color: var(--accent-color);">
             </div>
         </div>
     </div>
 
-    <!-- ゲーム説明（遊び方説明書）モーダル (別窓で開くため#appの外側に配置) -->
+    <!-- 遊び方説明画面 -->
     <div id="guide-modal" class="preview-modal" style="display:none; z-index: 3100;">
         <div class="preview-inner" style="max-width: 480px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
             <button id="guide-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
-            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="guide_title">HOW TO PLAY</h2>
-            
+            <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="guide_title">ゲーム説明</h2>
             <div id="game-guide-text" style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; font-size: 0.85rem; line-height: 1.6; color: #dddddd; text-align: left; max-height: 250px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);" data-i18n="game_guide"></div>
         </div>
     </div>
 
-    <!-- 言語選択モーダル (タイトル画面から別窓で開くため#appの外側に配置) -->
+    <!-- 言語選択画面 -->
     <div id="language-modal" class="preview-modal" style="display:none; z-index: 3000;">
         <div class="preview-inner" style="max-width: 400px; background: rgba(13, 13, 13, 0.98); border: 2px solid var(--accent-color); border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); width: 90%;">
             <button id="language-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
             <h2 style="color: var(--accent-color); margin-bottom: 20px; text-align: center; font-size: 1.6rem;" data-i18n="language_title">LANGUAGE</h2>
-            
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <button class="btn lang-select-btn" data-lang="ja" style="width: 100%; padding: 10px; font-size: 1rem;">日本語</button>
                 <button class="btn lang-select-btn" data-lang="en" style="width: 100%; padding: 10px; font-size: 1rem;">English</button>
@@ -221,13 +211,13 @@
         </div>
     </div>
 
-    <!-- タイムレコード表示モーダル (タイトル画面からアクセスするため#appの外側、<body>直下に配置) -->
+    <!-- タイムレコード画面 -->
     <div id="records-modal" class="preview-modal" style="display:none; z-index: 3000;">
         <div class="preview-inner" style="max-width: 600px; max-height: 80vh; overflow-y: auto; background: rgba(13, 13, 13, 0.98); border: 2px solid #ffd700; border-radius: 12px; padding: 25px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); width: 90%;">
             <button id="records-close" class="preview-close-btn" style="position: absolute; right: 15px; top: 10px; font-size: 2rem; background: none; border: none; color: #fff; cursor: pointer;">&times;</button>
-            <h2 style="color: #ffd700; margin-bottom: 20px; text-align: center; font-size: 1.6rem; letter-spacing: 2px;">タイムレコード 🏆</h2>
+            <h2 style="color: #ffd700; margin-bottom: 20px; text-align: center; font-size: 1.6rem; letter-spacing: 2px;" data-i18n="rec_title">タイムレコード 🏆</h2>
             <div id="records-content" style="width: 100%; color: #fff; line-height: 1.6;">
-                <!-- ここにJSで動的にレコードを表示 -->
+                <!-- JSで動的に表示 -->
             </div>
         </div>
     </div>

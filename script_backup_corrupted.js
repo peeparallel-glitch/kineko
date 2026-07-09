@@ -1,19 +1,19 @@
 const STAGES = [
-    { title: "メトロノーム", videoUrl: "IMG/1metoro.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "灯台", videoUrl: "IMG/2toudai.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "風車", videoUrl: "IMG/3fuusya.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "噴水", videoUrl: "IMG/4funsui.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "交差点", videoUrl: "IMG/5kousaten.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "メリーゴーランド", videoUrl: "IMG/6meri-.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "人型ロボット", videoUrl: "IMG/7robtto.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "戦闘ロボ", videoUrl: "IMG/8robo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "犬", videoUrl: "IMG/9dog.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "デジタルバトル", videoUrl: "IMG/10digital battle.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "花火", videoUrl: "IMG/11hanabi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "カモ", videoUrl: "IMG/12kamo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "金魚", videoUrl: "IMG/13kinngyo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "鯉", videoUrl: "IMG/14koi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
-    { title: "ヒヨコ", videoUrl: "IMG/15hiyoko.mp4", rows: 3, cols: 3, aspectRatio: 16/9 }
+    { title: "Metoro Video", videoUrl: "IMG/1metoro.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Toudai Video", videoUrl: "IMG/2toudai.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Fuusya", videoUrl: "IMG/3fuusya.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Funsui", videoUrl: "IMG/4funsui.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kousaten", videoUrl: "IMG/5kousaten.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Meri-", videoUrl: "IMG/6meri-.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Robotto", videoUrl: "IMG/7robtto.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Robo", videoUrl: "IMG/8robo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Dog", videoUrl: "IMG/9dog.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Digital Battle", videoUrl: "IMG/10digital battle.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Hanabi", videoUrl: "IMG/11hanabi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kamo", videoUrl: "IMG/12kamo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Kingyo", videoUrl: "IMG/13kinngyo.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Koi", videoUrl: "IMG/14koi.mp4", rows: 3, cols: 3, aspectRatio: 16/9 },
+    { title: "Hiyoko", videoUrl: "IMG/15hiyoko.mp4", rows: 3, cols: 3, aspectRatio: 16/9 }
 ];
 
 const I18N = {
@@ -54,7 +54,7 @@ const I18N = {
         rec_title: "タイムレコード 🏆",
         rec_square_tab: "通常 ⬛",
         rec_jigsaw_tab: "ジグソー 🧩",
-        rec_square_title: "通常ピースの記録",
+        rec_square_title: "通常ピース의 記録",
         rec_jigsaw_title: "鬼畜(ジグソー)の記録",
         rec_reset: "全レコード削除",
         confirm_reset: "本当に全てのタイムレコードを消去しますか？",
@@ -726,40 +726,9 @@ class KinekoGame {
         canvas.dataset.tabBottom = edgeTabs[2];
         canvas.dataset.tabLeft   = edgeTabs[3];
 
-        // ホバー（マウスオーバー）検知用
-        canvas.dataset.hovered = "false";
-        canvas.addEventListener('pointerenter', () => {
-            canvas.dataset.hovered = "true";
-        });
-        canvas.addEventListener('pointerleave', () => {
-            canvas.dataset.hovered = "false";
-        });
-
         // モバイル等のタップ反応を瞬時にするため pointerdown を使用し、多重発火を防ぐ
         const handleInput = (e) => {
             e.preventDefault();
-            if (this.isJigsawMode) {
-                const rect = canvas.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
-                
-                // Canvas実ピクセル座標へのスケール
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const canvasX = clickX * scaleX;
-                const canvasY = clickY * scaleY;
-                
-                const ctx = canvas.getContext('2d');
-                const correctIdx = parseInt(canvas.dataset.correctIndex);
-                const jigsawPath = this._jigsawPathCache.get(correctIdx);
-                
-                if (jigsawPath) {
-                    // 凹凸のパスの内側（Path2D領域内）でなければクリックを無効化
-                    if (!ctx.isPointInPath(jigsawPath, canvasX, canvasY)) {
-                        return;
-                    }
-                }
-            }
             this.handlePieceClick(canvas);
         };
         canvas.addEventListener('pointerdown', handleInput);
@@ -1059,310 +1028,80 @@ class KinekoGame {
 
     /**
      * ジグソーピースのシルエットを描く Path2D を生成する。
-     * 細いネック＋丸い頭部で本物のジグソー形状を表現。
-     * @param {number} pw       - ピースの描画幅 (px)
-     * @param {number} ph       - ピースの描画高さ (px)
-     * @param {number} pad      - キャンバスのパディング量 (px)
-     * @param {number} tabTop    - 上辺のタブ方向 (1=上に凸 / -1=凹 / 0=平)
-     * @param {number} tabRight  - 右辺のタブ方向 (1=右に凸 / -1=凹 / 0=平)
-     * @param {number} tabBottom - 下辺のタブ方向 (1=下に凸 / -1=凹 / 0=平)
-     * @param {number} tabLeft   - 左辺のタブ方向 (1=左に凸 / -1=凹 / 0=平)
-     */
-    buildJigsawPath(pw, ph, pad, tabTop, tabRight, tabBottom, tabLeft) {
-        const path = new Path2D();
-        const x0 = pad, y0 = pad;
-        const x1 = pad + pw, y1 = pad + ph;
+     * タブは楕円の膨らみ（bezierCurveTo）で表現。
+     * @param {number} pw - ピースの描画幅 (px)
+     * @param {number} ph - ピースの描画高さ (px)
+     * @param {number} pad - キャンバスのパディング量 (px)
+     * @param {number} tabTop    -                 // モバイル時の内部解像度スケール（0.5倍で面積約1/4、描画負荷が極限まで激減）
+                const resolutionScale = isMobile ? 0.5 : 1.0;
+                const bufferW = Math.round(canvasW * resolutionScale);
+                const bufferH = Math.round(canvasH * resolutionScale);
 
-        const sz = Math.min(pw, ph);
-        const neck   = 0.08;   // 首元（適度にくびれる細さ）
-        const head   = 0.16;   // 頭部の横幅
-        const prot   = 0.18;   // 突出量（小さめ: 18%）
+                this.pieces.forEach(piece => {
+                    const ctx = piece.getContext('2d');
+                    const correctIdx = parseInt(piece.dataset.correctIndex);
+                    const r = Math.floor(correctIdx / cols);
+                    const c = correctIdx % cols;
 
-        // ---- 上辺 ----
-        path.moveTo(x0, y0);
-        if (tabTop !== 0) {
-            const d   = tabTop;            // +1=上に凸, -1=凹
-            const mx  = x0 + pw * 0.5;
-            const tH  = sz * prot * d;
-            path.lineTo(mx - pw * neck, y0);
-            // カドを無くし、真ん丸な球体にするための制御点配置
-            path.bezierCurveTo(
-                mx - pw * neck, y0 - tH * 0.4,
-                mx - pw * head, y0 - tH * 0.5,
-                mx - pw * head, y0 - tH * 0.75
-            );
-            path.bezierCurveTo(
-                mx - pw * head, y0 - tH * 1.05,
-                mx + pw * head, y0 - tH * 1.05,
-                mx + pw * head, y0 - tH * 0.75
-            );
-            path.bezierCurveTo(
-                mx + pw * head, y0 - tH * 0.5,
-                mx + pw * neck, y0 - tH * 0.4,
-                mx + pw * neck, y0
-            );
-        }
-        path.lineTo(x1, y0);
-
-        // ---- 右辺 ----
-        if (tabRight !== 0) {
-            const d   = tabRight;
-            const my  = y0 + ph * 0.5;
-            const tH  = sz * prot * d;
-            path.lineTo(x1, my - ph * neck);
-            path.bezierCurveTo(
-                x1 + tH * 0.4, my - ph * neck,
-                x1 + tH * 0.5, my - ph * head,
-                x1 + tH * 0.75, my - ph * head
-            );
-            path.bezierCurveTo(
-                x1 + tH * 1.05, my - ph * head,
-                x1 + tH * 1.05, my + ph * head,
-                x1 + tH * 0.75, my + ph * head
-            );
-            path.bezierCurveTo(
-                x1 + tH * 0.5, my + ph * head,
-                x1 + tH * 0.4, my + ph * neck,
-                x1,            my + ph * neck
-            );
-        }
-        path.lineTo(x1, y1);
-
-        // ---- 下辺 ----
-        if (tabBottom !== 0) {
-            const d   = tabBottom;
-            const mx  = x0 + pw * 0.5;
-            const tH  = sz * prot * d;
-            path.lineTo(mx + pw * neck, y1);
-            path.bezierCurveTo(
-                mx + pw * neck, y1 + tH * 0.4,
-                mx + pw * head, y1 + tH * 0.5,
-                mx + pw * head, y1 + tH * 0.75
-            );
-            path.bezierCurveTo(
-                mx + pw * head, y1 + tH * 1.05,
-                mx - pw * head, y1 + tH * 1.05,
-                mx - pw * head, y1 + tH * 0.75
-            );
-            path.bezierCurveTo(
-                mx - pw * head, y1 + tH * 0.5,
-                mx - pw * neck, y1 + tH * 0.4,
-                mx - pw * neck, y1
-            );
-        }
-        path.lineTo(x0, y1);
-
-        // ---- 左辺 ----
-        if (tabLeft !== 0) {
-            const d   = tabLeft;
-            const my  = y0 + ph * 0.5;
-            const tH  = sz * prot * d;
-            path.lineTo(x0, my + ph * neck);
-            path.bezierCurveTo(
-                x0 - tH * 0.4, my + ph * neck,
-                x0 - tH * 0.5, my + ph * head,
-                x0 - tH * 0.75, my + ph * head
-            );
-            path.bezierCurveTo(
-                x0 - tH * 1.05, my + ph * head,
-                x0 - tH * 1.05, my - ph * head,
-                x0 - tH * 0.75, my - ph * head
-            );
-            path.bezierCurveTo(
-                x0 - tH * 0.5, my - ph * head,
-                x0 - tH * 0.4, my - ph * neck,
-                x0,            my - ph * neck
-            );
-        }
-        path.closePath();
-        return path;
-    }
-
-    startDrawingLoop() {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        this._jigsawPathCache   = new Map(); // Path2Dキャッシュ
-        this._jigsawMaskCache   = new Map(); // マスクcanvasキャッシュ（スマホ用）
-        this._lastVideoTime     = -1;
-        this._lastFrameTime     = 0;
-
-        // スマホは20fps・PCは30fps
-        const TARGET_FPS      = isMobile ? 20 : 30;
-        const FRAME_INTERVAL  = 1000 / TARGET_FPS;
-        // スマホはパディングを小さく（キャンバス面積削減）
-        const PAD_RATIO       = isMobile ? 0.20 : 0.28;
-
-        const draw = (timestamp) => {
-            this.drawLoopId = requestAnimationFrame(draw);
-
-            // FPS制限
-            if (timestamp - this._lastFrameTime < FRAME_INTERVAL) return;
-            this._lastFrameTime = timestamp;
-
-            const stage = STAGES[this.currentStageIndex];
-            const cols  = stage.cols;
-            const rows  = stage.rows;
-
-            if (this.sharedVideo.readyState < 2 || this.isTransitioning) return;
-
-            const vW = this.sharedVideo.videoWidth;
-            const vH = this.sharedVideo.videoHeight;
-
-            // 動画フレームが変化していなければ全ピース描画スキップ
-            const videoTime    = this.sharedVideo.currentTime;
-            const videoChanged = videoTime !== this._lastVideoTime;
-            this._lastVideoTime = videoTime;
-
-            const sourcePieceW = vW / cols;
-            const sourcePieceH = vH / rows;
-
-            const padding = this.isJigsawMode
-                ? Math.min(this.pieceWidth, this.pieceHeight) * PAD_RATIO
-                : 0;
-            const canvasW = this.pieceWidth  + 2 * padding;
-            const canvasH = this.pieceHeight + 2 * padding;
-            const bufferW = Math.round(canvasW);
-            const bufferH = Math.round(canvasH);
-
-            this.pieces.forEach(piece => {
-                const ctx        = piece.getContext('2d');
-                const correctIdx = parseInt(piece.dataset.correctIndex);
-                const r = Math.floor(correctIdx / cols);
-                const c = correctIdx % cols;
-
-                // キャンバスサイズ変更
-                const sizeChanged = piece.width !== bufferW || piece.height !== bufferH;
-                if (sizeChanged) {
-                    piece.width  = bufferW;
-                    piece.height = bufferH;
-                    this._jigsawPathCache.delete(correctIdx);
-                    this._jigsawMaskCache.delete(correctIdx);
-                }
-
-                // スタイルサイズ（差分のみ）
-                const sw = canvasW + 'px', sh = canvasH + 'px';
-                if (piece.style.width  !== sw) piece.style.width  = sw;
-                if (piece.style.height !== sh) piece.style.height = sh;
-
-                // ホバー状態のチェック
-                const isHovered = piece.dataset.hovered === "true";
-                const lastHovered = piece.dataset.lastHovered === "true";
-                const hoverChanged = (isHovered !== lastHovered);
-                piece.dataset.lastHovered = isHovered ? "true" : "false";
-
-                // 動画フレーム変化なし＆サイズ変化なし＆ホバー変化なし＆現在ホバー中でない場合にスキップ
-                if (!videoChanged && !sizeChanged && !hoverChanged && !isHovered) return;
-
-                // imageSmoothingをスマホはオフ（高速化）
-                ctx.imageSmoothingEnabled = !isMobile;
-
-                ctx.clearRect(0, 0, bufferW, bufferH);
-
-                if (this.isJigsawMode) {
-                    // --- ジグソーモード ---
-
-                    // Path2Dキャッシュ
-                    let jigsawPath = this._jigsawPathCache.get(correctIdx);
-                    if (!jigsawPath) {
-                        const tabTop    = parseFloat(piece.dataset.tabTop)    || 0;
-                        const tabRight  = parseFloat(piece.dataset.tabRight)  || 0;
-                        const tabBottom = parseFloat(piece.dataset.tabBottom) || 0;
-                        const tabLeft   = parseFloat(piece.dataset.tabLeft)   || 0;
-                        jigsawPath = this.buildJigsawPath(
-                            this.pieceWidth, this.pieceHeight, padding,
-                            tabTop, tabRight, tabBottom, tabLeft
-                        );
-                        this._jigsawPathCache.set(correctIdx, jigsawPath);
+                    // canvas内部の描画バッファ解像度を設定
+                    if (piece.width !== bufferW || piece.height !== bufferH) {
+                        piece.width  = bufferW;
+                        piece.height = bufferH;
+                        this._jigsawPathCache.delete(correctIdx);
                     }
 
-                    const isSelected = piece.classList.contains('selected');
-                    const isLocked   = piece.classList.contains('locked');
+                    // CSS表示サイズは元の値を維持することでボケを防ぎつつ高速化
+                    const currentStyleW = canvasW + 'px';
+                    const currentStyleH = canvasH + 'px';
+                    if (piece.style.width !== currentStyleW || piece.style.height !== currentStyleH) {
+                        piece.style.width = currentStyleW;
+                        piece.style.height = currentStyleH;
+                    }
 
-                    if (isMobile) {
-                        // ── スマホ: globalCompositeOperationでclipの代替 ──
-                        // ① まず全面に動画を描く
-                        const padRatioW = padding / this.pieceWidth;
-                        const padRatioH = padding / this.pieceHeight;
-                        const srcPadW   = padRatioW * sourcePieceW;
-                        const srcPadH   = padRatioH * sourcePieceH;
-                        const idealSrcX = c * sourcePieceW - srcPadW;
-                        const idealSrcY = r * sourcePieceH - srcPadH;
-                        const clampedSrcX = Math.max(0, Math.min(idealSrcX, vW));
-                        const clampedSrcY = Math.max(0, Math.min(idealSrcY, vH));
-                        const dstOffX   = (clampedSrcX - idealSrcX) / sourcePieceW * this.pieceWidth;
-                        const dstOffY   = (clampedSrcY - idealSrcY) / sourcePieceH * this.pieceHeight;
-                        const clampedSrcW = Math.min(sourcePieceW * (1 + 2*padRatioW), vW - clampedSrcX);
-                        const clampedSrcH = Math.min(sourcePieceH * (1 + 2*padRatioH), vH - clampedSrcY);
+                    ctx.clearRect(0, 0, bufferW, bufferH);
 
-                        ctx.drawImage(
-                            this.sharedVideo,
-                            clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH,
-                            dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
-                        );
-
-                        // ② destination-in でジグソー形状以外を消去（clipより軽い場合あり）
-                        ctx.save();
-                        ctx.globalCompositeOperation = 'destination-in';
-                        ctx.fillStyle = '#fff';
-                        ctx.fill(jigsawPath);
-                        ctx.restore();
-
-                        // ③ 境界線（白い細枠）
-                        ctx.save();
-                        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-                        ctx.lineWidth   = 1.0;
-                        ctx.stroke(jigsawPath);
-                        ctx.restore();
-
-                        // ④ 選択中（赤枠）・正解位置（緑枠）の色付き
-                        if (isSelected || isLocked) {
-                            ctx.save();
-                            ctx.strokeStyle = isLocked ? 'rgba(0,255,68,0.75)' : 'rgba(255,60,60,0.9)';
-                            ctx.lineWidth   = isLocked ? 3 : 6;
-                            ctx.stroke(jigsawPath);
-                            ctx.restore();
-                        } else if (isHovered) {
-                            // カーソルホバー時の青枠
-                            ctx.save();
-                            ctx.strokeStyle = 'rgba(0, 140, 255, 0.9)';
-                            ctx.lineWidth   = 4;
-                            ctx.stroke(jigsawPath);
-                            ctx.restore();
-                        }
-
-                        // スマホはdrop-shadow無効（GPU合成コスト削減）
-                        if (piece.style.filter !== '') piece.style.filter = '';
-
-                    } else {
-                        // ── PC: 従来のclip方式 ──
-                        if (isLocked || isSelected) {
-                            ctx.save();
-                            ctx.strokeStyle = isLocked ? 'rgba(0,255,68,0.4)' : '#ff0000';
-                            ctx.lineWidth   = isLocked ? 2 : 8;
-                            ctx.stroke(jigsawPath);
-                            ctx.restore();
-                        } else if (isHovered) {
-                            ctx.save();
-                            ctx.strokeStyle = 'rgba(0, 140, 255, 0.9)';
-                            ctx.lineWidth   = 4;
-                            ctx.stroke(jigsawPath);
-                            ctx.restore();
+                    if (this.isJigsawMode) {
+                        // キャッシュされたPathを再利用
+                        let jigsawPath = this._jigsawPathCache.get(correctIdx);
+                        if (!jigsawPath) {
+                            const tabTop    = parseFloat(piece.dataset.tabTop)    || 0;
+                            const tabRight  = parseFloat(piece.dataset.tabRight)  || 0;
+                            const tabBottom = parseFloat(piece.dataset.tabBottom) || 0;
+                            const tabLeft   = parseFloat(piece.dataset.tabLeft)   || 0;
+                            jigsawPath = this.buildJigsawPath(
+                                this.pieceWidth, this.pieceHeight,
+                                padding,
+                                tabTop, tabRight, tabBottom, tabLeft
+                            );
+                            this._jigsawPathCache.set(correctIdx, jigsawPath);
                         }
 
                         ctx.save();
+                        // 解像度スケールを適用して描画処理を軽量化
+                        if (resolutionScale !== 1.0) {
+                            ctx.scale(resolutionScale, resolutionScale);
+                        }
+
+                        // モバイルは画像平滑化を一時的にOFFにして描画スピードを優先
+                        if (isMobile) {
+                            ctx.imageSmoothingEnabled = false;
+                        }
                         ctx.clip(jigsawPath);
 
                         const padRatioW = padding / this.pieceWidth;
                         const padRatioH = padding / this.pieceHeight;
-                        const srcPadW   = padRatioW * sourcePieceW;
-                        const srcPadH   = padRatioH * sourcePieceH;
+                        const srcPadW = padRatioW * sourcePieceW;
+                        const srcPadH = padRatioH * sourcePieceH;
                         const idealSrcX = c * sourcePieceW - srcPadW;
                         const idealSrcY = r * sourcePieceH - srcPadH;
                         const clampedSrcX = Math.max(0, Math.min(idealSrcX, vW));
                         const clampedSrcY = Math.max(0, Math.min(idealSrcY, vH));
-                        const dstOffX   = (clampedSrcX - idealSrcX) / sourcePieceW * this.pieceWidth;
-                        const dstOffY   = (clampedSrcY - idealSrcY) / sourcePieceH * this.pieceHeight;
-                        const clampedSrcW = Math.min(sourcePieceW * (1 + 2*padRatioW), vW - clampedSrcX);
-                        const clampedSrcH = Math.min(sourcePieceH * (1 + 2*padRatioH), vH - clampedSrcY);
+                        const dstOffX = (clampedSrcX - idealSrcX) / sourcePieceW * this.pieceWidth;
+                        const dstOffY = (clampedSrcY - idealSrcY) / sourcePieceH * this.pieceHeight;
+                        const idealSrcW = sourcePieceW * (1 + 2 * padRatioW);
+                        const idealSrcH = sourcePieceH * (1 + 2 * padRatioH);
+                        const clampedSrcW = Math.min(idealSrcW, vW - clampedSrcX);
+                        const clampedSrcH = Math.min(idealSrcH, vH - clampedSrcY);
 
                         ctx.drawImage(
                             this.sharedVideo,
@@ -1370,41 +1109,129 @@ class KinekoGame {
                             dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
                         );
 
-                        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-                        ctx.lineWidth   = 1.5;
+                        // 輪郭線（stroke）は常に描画し判別可能にする
+                        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                        // 解像度スケールが小さくなっても物理的な太さが維持されるよう調整
+                        ctx.lineWidth = (isMobile ? 1.4 : 1.5) / resolutionScale;
                         ctx.stroke(jigsawPath);
+
+                        ctx.restore();�ップを廃止し、滑らかさを最大化（常に毎フレーム描画）
+        const skipInterval = 1;
+
+        const draw = () => {
+            const stage = STAGES[this.currentStageIndex];
+            const cols = stage.cols;
+            const rows = stage.rows;
+
+            // 共有ビデオが読み込まれており、クリアトランジション中でない場合のみ描画
+            if (this.sharedVideo.readyState >= 2 && !this.isTransitioning) {
+                const vW = this.sharedVideo.videoWidth;
+                const vH = this.sharedVideo.videoHeight;
+                const sourcePieceW = vW / cols;
+                const sourcePieceH = vH / rows;
+
+                // ジグソーモード用パディング（モバイルは最小限にし、不要なメモリ空間を節約）
+                const padding = this.isJigsawMode
+                    ? Math.min(this.pieceWidth, this.pieceHeight) * (isMobile ? 0.15 : 0.28)
+                    : 0;
+                const canvasW = this.pieceWidth  + 2 * padding;
+                const canvasH = this.pieceHeight + 2 * padding;
+
+                // モバイル時の内部解像度スケール（0.7倍で面積約半分、描画負荷が激減）
+                const resolutionScale = isMobile ? 0.7 : 1.0;
+                const bufferW = Math.round(canvasW * resolutionScale);
+                const bufferH = Math.round(canvasH * resolutionScale);
+
+                this.pieces.forEach(piece => {
+                    const ctx = piece.getContext('2d');
+                    const correctIdx = parseInt(piece.dataset.correctIndex);
+                    const r = Math.floor(correctIdx / cols);
+                    const c = correctIdx % cols;
+
+                    // canvas内部の描画バッファ解像度を設定
+                    if (piece.width !== bufferW || piece.height !== bufferH) {
+                        piece.width  = bufferW;
+                        piece.height = bufferH;
+                        this._jigsawPathCache.delete(correctIdx);
+                    }
+
+                    // CSS表示サイズは元の値を維持することでボケを防ぎつつ高速化
+                    const currentStyleW = canvasW + 'px';
+                    const currentStyleH = canvasH + 'px';
+                    if (piece.style.width !== currentStyleW || piece.style.height !== currentStyleH) {
+                        piece.style.width = currentStyleW;
+                        piece.style.height = currentStyleH;
+                    }
+
+                    ctx.clearRect(0, 0, bufferW, bufferH);
+
+                    if (this.isJigsawMode) {
+                        // キャッシュされたPathを再利用
+                        let jigsawPath = this._jigsawPathCache.get(correctIdx);
+                        if (!jigsawPath) {
+                            const tabTop    = parseFloat(piece.dataset.tabTop)    || 0;
+                            const tabRight  = parseFloat(piece.dataset.tabRight)  || 0;
+                            const tabBottom = parseFloat(piece.dataset.tabBottom) || 0;
+                            const tabLeft   = parseFloat(piece.dataset.tabLeft)   || 0;
+                            jigsawPath = this.buildJigsawPath(
+                                this.pieceWidth, this.pieceHeight,
+                                padding,
+                                tabTop, tabRight, tabBottom, tabLeft
+                            );
+                            this._jigsawPathCache.set(correctIdx, jigsawPath);
+                        }
+
+                        ctx.save();
+                        // 解像度スケールを適用して描画処理を軽量化
+                        if (resolutionScale !== 1.0) {
+                            ctx.scale(resolutionScale, resolutionScale);
+                        }
+
+                        // モバイルは画像平滑化を一時的にOFFにして描画スピードを優先
+                        if (isMobile) {
+                            ctx.imageSmoothingEnabled = false;
+                        }
+                        ctx.clip(jigsawPath);
+
+                        const padRatioW = padding / this.pieceWidth;
+                        const padRatioH = padding / this.pieceHeight;
+                        const srcPadW = padRatioW * sourcePieceW;
+                        const srcPadH = padRatioH * sourcePieceH;
+                        const idealSrcX = c * sourcePieceW - srcPadW;
+                        const idealSrcY = r * sourcePieceH - srcPadH;
+                        const clampedSrcX = Math.max(0, Math.min(idealSrcX, vW));
+                        const clampedSrcY = Math.max(0, Math.min(idealSrcY, vH));
+                        const dstOffX = (clampedSrcX - idealSrcX) / sourcePieceW * this.pieceWidth;
+                        const dstOffY = (clampedSrcY - idealSrcY) / sourcePieceH * this.pieceHeight;
+                        const idealSrcW = sourcePieceW * (1 + 2 * padRatioW);
+                        const idealSrcH = sourcePieceH * (1 + 2 * padRatioH);
+                        const clampedSrcW = Math.min(idealSrcW, vW - clampedSrcX);
+                        const clampedSrcH = Math.min(idealSrcH, vH - clampedSrcY);
+
+                        ctx.drawImage(
+                            this.sharedVideo,
+                            clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH,
+                            dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
+                        );
+
+                        // 輪郭線（stroke）は常に描画し判別可能にする
+                        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+                        // 解像度スケールが小さくなっても物理的な太さが維持されるよう調整
+                        ctx.lineWidth = (isMobile ? 1.6 : 1.5) / resolutionScale;
+                        ctx.stroke(jigsawPath);
+
                         ctx.restore();
-
-                        const newFilter = isLocked ? 'drop-shadow(0 0 4px rgba(0,255,68,0.45))' : '';
-                        if (piece.style.filter !== newFilter) piece.style.filter = newFilter;
+                    } else {
+                        // 通常モード
+                        ctx.drawImage(
+                            this.sharedVideo,
+                            c * sourcePieceW, r * sourcePieceH, sourcePieceW, sourcePieceH,
+                            0, 0, this.pieceWidth, this.pieceHeight
+                        );
                     }
-
-                } else {
-                    // --- 通常モード ---
-                    const isSelected = piece.classList.contains('selected');
-                    const isLocked   = piece.classList.contains('locked');
-
-                    ctx.save();
-                    ctx.drawImage(
-                        this.sharedVideo,
-                        c * sourcePieceW, r * sourcePieceH, sourcePieceW, sourcePieceH,
-                        0, 0, this.pieceWidth, this.pieceHeight
-                    );
-                    if (isLocked || isSelected) {
-                        ctx.strokeStyle = isLocked ? 'rgba(0,255,68,0.4)' : '#ff0000';
-                        ctx.lineWidth   = isLocked ? 1.5 : 5;
-                        ctx.strokeRect(2, 2, this.pieceWidth - 4, this.pieceHeight - 4);
-                    } else if (isHovered) {
-                        ctx.strokeStyle = 'rgba(0, 140, 255, 0.9)';
-                        ctx.lineWidth   = 4;
-                        ctx.strokeRect(2, 2, this.pieceWidth - 4, this.pieceHeight - 4);
-                    }
-                    ctx.restore();
-
-                    const newFilter = isLocked ? 'drop-shadow(0 0 4px rgba(0,255,68,0.45))' : '';
-                    if (piece.style.filter !== newFilter) piece.style.filter = newFilter;
-                }
-            });
+                });
+            }
+            this.drawLoopId = requestAnimationFrame(draw);
         };
         this.drawLoopId = requestAnimationFrame(draw);
     }

@@ -106,10 +106,10 @@ body {
     -webkit-backface-visibility: hidden;
 }
 
-/* ジグソーパズルのホバー（カーソルが乗ったとき）のふち色付け（選択用の水色と異なるマゼンタ） */
+/* ジグソーパズルのホバー時のエフェクト */
 .piece.jigsaw-piece:not(.selected):not(.locked):hover {
-    filter: drop-shadow(0 0 3px #ff00ff) drop-shadow(0 0 8px #ff00ff) drop-shadow(0 0 15px #ff00ff) brightness(1.25);
-    z-index: 2; /* 境界が分かりやすいように手前に表示 */
+    filter: brightness(1.15) contrast(1.05);
+    z-index: 2; /* 浮き出すように最前面に表示 */
 }
 
 .piece video {
@@ -120,27 +120,24 @@ body {
     -webkit-backface-visibility: hidden;
 }
 
-/* 選択状態 */
+/* 選択中 */
 .piece.selected {
     z-index: 5;
-    filter: drop-shadow(0 0 14px var(--accent-color)) brightness(1.2);
 }
 
-/* 正解位置かつ選択中（filterを合成して両方見せる） */
+/* 位置固定時選択 */
 .piece.locked.selected {
-    filter: drop-shadow(0 0 14px var(--accent-color)) drop-shadow(0 0 6px rgba(0, 242, 255, 0.7)) brightness(1.2);
+    z-index: 5;
 }
 
-/* 正解アニメーション・ロック状態 */
+/* アニメーションロック */
 .piece.locked {
-    /* canvas要素には::afterが実谷的に効かないため filterで演出 */
-    filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.7));
-    animation: lockFlash 0.5s ease-out;
+    animation: lockFlash 0.3s ease-out;
 }
 
 @keyframes lockFlash {
-    0%   { filter: drop-shadow(0 0 20px rgba(0, 242, 255, 1))    brightness(1.4); }
-    100% { filter: drop-shadow(0 0  6px rgba(0, 242, 255, 0.7)); }
+    0%   { filter: drop-shadow(0 0 12px rgba(0, 242, 255, 1)) brightness(1.3); }
+    100% { filter: drop-shadow(0 0  4px rgba(0, 242, 255, 0.5)); }
 }
 
 /* UIコントロール */
