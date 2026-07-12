@@ -966,8 +966,7 @@ class KinekoGame {
         this.saveClearRecord(this.accumulatedElapsedTime);
 
         // 1枚の完成版動画に切り替えて音声付きで再生する
-        const stage = STAGES[this.currentStageIndex];
-        this.completedVideo.src = stage.videoUrl;
+        this.completedVideo.src = this.getVideoUrl(this.currentStageIndex);
         this.completedVideo.style.width = this.board.style.width;
         this.completedVideo.style.height = this.board.style.height;
         this.completedVideo.style.display = 'block';
@@ -1212,6 +1211,20 @@ class KinekoGame {
             const videoChanged = videoTime !== this._lastVideoTime;
             this._lastVideoTime = videoTime;
 
+            // --- 共有オフスクリーンキャンバスの作成・更新 ---
+            if (!this.sharedOffscreenCanvas) {
+                this.sharedOffscreenCanvas = document.createElement('canvas');
+                this.sharedOffscreenCtx = this.sharedOffscreenCanvas.getContext('2d', { alpha: false });
+            }
+            if (this.sharedOffscreenCanvas.width !== vW || this.sharedOffscreenCanvas.height !== vH) {
+                this.sharedOffscreenCanvas.width = vW;
+                this.sharedOffscreenCanvas.height = vH;
+            }
+            // 動画フレームが変更された場合のみ、動画からオフスクリーンへ描画(1フレームに1回のみの重い処理)
+            if (videoChanged) {
+                this.sharedOffscreenCtx.drawImage(this.sharedVideo, 0, 0, vW, vH);
+            }
+
             const sourcePieceW = vW / cols;
             const sourcePieceH = vH / rows;
 
@@ -1294,7 +1307,7 @@ class KinekoGame {
                         const clampedSrcH = Math.min(sourcePieceH * (1 + 2*padRatioH), vH - clampedSrcY);
 
                         ctx.drawImage(
-                            this.sharedVideo,
+                            this.sharedOffscreenCanvas,
                             clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH,
                             dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
                         );
@@ -1365,7 +1378,7 @@ class KinekoGame {
                         const clampedSrcH = Math.min(sourcePieceH * (1 + 2*padRatioH), vH - clampedSrcY);
 
                         ctx.drawImage(
-                            this.sharedVideo,
+                            this.sharedOffscreenCanvas,
                             clampedSrcX, clampedSrcY, clampedSrcW, clampedSrcH,
                             dstOffX, dstOffY, canvasW - dstOffX, canvasH - dstOffY
                         );
@@ -1386,7 +1399,7 @@ class KinekoGame {
 
                     ctx.save();
                     ctx.drawImage(
-                        this.sharedVideo,
+                        this.sharedOffscreenCanvas,
                         c * sourcePieceW, r * sourcePieceH, sourcePieceW, sourcePieceH,
                         0, 0, this.pieceWidth, this.pieceHeight
                     );
