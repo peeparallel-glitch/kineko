@@ -317,6 +317,21 @@ class KinekoGame {
         this.init(restoreState);
     }
 
+    getVideoUrl(index) {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const stage = STAGES[index];
+        if (!stage) return "";
+        if (isMobile) {
+            const mobileVideoNames = [
+                "1Metoro.mp4", "2Toudai.mp4", "3Fuusya.mp4", "4Funsui.mp4", "5Kousaten.mp4",
+                "6Meri-.mp4", "7Robtto.mp4", "8Robo.mp4", "9Dog.mp4", "10Digital Battle.mp4",
+                "11Hanabi.mp4", "12Kamo.mp4", "13Kinngyo.mp4", "14Koi.mp4", "15Hiyoko.mp4"
+            ];
+            return "android/" + mobileVideoNames[index];
+        }
+        return stage.videoUrl;
+    }
+
     init(restoreState = null) {
         this.loadStage(this.currentStageIndex, restoreState);
         window.addEventListener('resize', () => this.resizeBoard());
@@ -333,8 +348,7 @@ class KinekoGame {
         const previewClose = document.getElementById('preview-close');
 
         previewBtn.addEventListener('click', () => {
-            const stage = STAGES[this.currentStageIndex];
-            previewVideo.src = stage.videoUrl;
+            previewVideo.src = this.getVideoUrl(this.currentStageIndex);
             previewVideo.muted = false; // 完成図は音声あり
             previewVideo.play().catch(() => {
                 // 自動再生がブロックされた場合はミュートで再試行
@@ -496,7 +510,7 @@ class KinekoGame {
         document.getElementById('ad-modal').style.display = 'none';
 
         // 共有ビデオの再生を開始
-        this.sharedVideo.src = stage.videoUrl;
+        this.sharedVideo.src = this.getVideoUrl(index);
         this.sharedVideo.play().catch(err => console.log("Auto-play blocked or failed:", err));
 
         // 反転トグル状態の初期化
@@ -1491,21 +1505,75 @@ class KinekoGame {
         document.getElementById('timeup-modal').style.display = 'flex';
     }
 
+    onNativeAdStart() {
+        // ネイティブ広告が開始されたら、JS側のフェイクモーダルを直ちに閉じる
+        const adModal = document.getElementById('ad-modal');
+        if (adModal) adModal.style.display = 'none';
+        if (this._adInterval) {
+            clearInterval(this._adInterval);
+            this._adInterval = null;
+        }
+        if (this._adProgressInterval) {
+            clearInterval(this._adProgressInterval);
+            this._adProgressInterval = null;
+        }
+    }
+
+    grantReward() {
+        // 二重呼び出し防止ガード
+        if (this._rewardGranted) return;
+        this._rewardGranted = true;
+
+        const adModal = document.getElementById('ad-modal');
+        if (adModal) adModal.style.display = 'none';
+        if (this._adInterval) {
+            clearInterval(this._adInterval);
+            this._adInterval = null;
+        }
+        if (this._adProgressInterval) {
+            clearInterval(this._adProgressInterval);
+            this._adProgressInterval = null;
+        }
+        this.isTransitioning = false;
+        // +1分延長してタイマー再開
+        this.currentRemainingTime = 60000;
+        this.startTimer(this.currentRemainingTime);
+    }
+
     watchAd() {
         // タイムアップモーダルを隠す
         document.getElementById('timeup-modal').style.display = 'none';
 
-        // スマホ（モバイル端末）判定
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (!isMobile) {
-            // ウェブ版は広告を表示せず即座に1分延長して再開
-            this.isTransitioning = false;
-            this.currentRemainingTime = 60000;
-            this.startTimer(this.currentRemainingTime);
+        // 二重呼び出し防止フラグをリセット
+        this._rewardGranted = false;
+
+        // Androidアプリ（WebView）から開かれている場合のみネイティブ広告を呼ぶ
+        const nativeAdBridge = window.AndroidAdMob || window.Android;
+        if (nativeAdBridge && typeof nativeAdBridge.showRewardedAd === 'function') {
+            try {
+                nativeAdBridge.showRewardedAd();
+            } catch (e) {
+                console.warn('Native showRewardedAd failed:', e);
+                this.grantReward();
+            }
+            return;
+        } else if (nativeAdBridge && typeof nativeAdBridge.showRewardAd === 'function') {
+            try {
+                nativeAdBridge.showRewardAd();
+            } catch (e) {
+                console.warn('Native showRewardAd failed:', e);
+                this.grantReward();
+            }
             return;
         }
 
-        // ====== リワード広告（ca-app-pub-3940256099942544/5224354917）======
+        // Web版（スマホ・PCのブラウザ）の場合は広告処理をスキップして直接報酬を付与してゲーム再開
+        console.log("Web版（ブラウザ）のため、広告処理をスキップして直接報酬を付与します。");
+        if (typeof onRewardEarned === 'function') onRewardEarned();
+        if (typeof onRewardClosed === 'function') onRewardClosed();
+    }
+
+    startFallbackAdTimer() {
         const adModal = document.getElementById('ad-modal');
         const progressBar = document.getElementById('ad-progress-bar');
         const countdownEl = document.getElementById('ad-countdown');
@@ -1517,42 +1585,75 @@ class KinekoGame {
         let timeLeft = AD_DURATION;
         countdownEl.innerText = timeLeft;
 
-        // AdMob リワード広告ロード試行（WebView環境・将来のネイティブ対応用）
-        if (window.admob && window.admob.rewardVideo) {
-            window.admob.rewardVideo.load({ id: 'ca-app-pub-3940256099942544/5224354917' });
-            window.admob.rewardVideo.show().catch(() => {});
-        }
+        // 既存のタイマーをクリア
+        if (this._adInterval) clearInterval(this._adInterval);
+        if (this._adProgressInterval) clearInterval(this._adProgressInterval);
 
-        const adInterval = setInterval(() => {
+        // カウントダウン表示用 (1秒毎)
+        this._adInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft >= 0) countdownEl.innerText = timeLeft;
         }, 1000);
 
+        // プログレスバー更新用 (setInterval ベース)
+        // requestAnimationFrame はネイティブ広告表示中にバックグラウンド化すると停止するため使わない
         const startTime = Date.now();
         const duration = AD_DURATION * 1000;
 
-        const updateProgress = () => {
+        this._adProgressInterval = setInterval(() => {
+            // ネイティブ広告が開始されてモーダルが閉じられた場合はタイマーを終了
+            if (adModal.style.display === 'none') {
+                clearInterval(this._adProgressInterval);
+                this._adProgressInterval = null;
+                return;
+            }
+
             const elapsed = Date.now() - startTime;
             const progress = Math.min(100, (elapsed / duration) * 100);
             progressBar.style.width = `${progress}%`;
 
-            if (elapsed < duration) {
-                requestAnimationFrame(updateProgress);
-            } else {
-                clearInterval(adInterval);
-                adModal.style.display = 'none';
-                this.isTransitioning = false;
-                // +1分（60000ミリ秒）延長してタイマー再開
-                this.currentRemainingTime = 60000;
-                this.startTimer(this.currentRemainingTime);
+            if (elapsed >= duration) {
+                clearInterval(this._adProgressInterval);
+                this._adProgressInterval = null;
+                this.grantReward();
             }
-        };
-
-        requestAnimationFrame(updateProgress);
+        }, 200);
     }
 }
 
-// ====== インタースティシャル広告表示関数（ca-app-pub-3940256099942544/1033173712）======
+function onRewardEarned() {
+    try {
+        if (window.gameInstance && typeof window.gameInstance.grantReward === 'function') {
+            window.gameInstance.grantReward();
+        }
+    } catch (e) {
+        console.error('onRewardEarned error:', e);
+    }
+}
+
+// MainActivity.java から呼ばれる
+function onRewardClosed() {
+    try {
+        if (window.gameInstance && typeof window.gameInstance.grantReward === 'function') {
+            window.gameInstance.grantReward();
+        }
+    } catch (e) {
+        console.error('onRewardClosed error:', e);
+    }
+}
+
+// MainActivity.java から呼ばれる
+function onRewardAdStarted() {
+    try {
+        if (window.gameInstance && typeof window.gameInstance.onNativeAdStart === 'function') {
+            window.gameInstance.onNativeAdStart();
+        }
+    } catch (e) {
+        console.error('onRewardAdStarted error:', e);
+    }
+}
+
+// ====== インタースティシャル広告表示関数（ca-app-pub-7685711026688383/9307253180）======
 function showInterstitialAd(callback) {
     // スマホ（モバイル端末）判定
     const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
@@ -1571,7 +1672,7 @@ function showInterstitialAd(callback) {
 
     // AdMob インタースティシャルロード試行（WebView環境・将来のネイティブ対応用）
     if (window.admob && window.admob.interstitial) {
-        window.admob.interstitial.load({ id: 'ca-app-pub-3940256099942544/1033173712' });
+        window.admob.interstitial.load({ id: 'ca-app-pub-7685711026688383/9307253180' });
         window.admob.interstitial.show()
             .then(() => callback())
             .catch(() => runFallback());
