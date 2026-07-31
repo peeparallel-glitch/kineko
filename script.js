@@ -43,7 +43,7 @@ const I18N = {
         preview: "完成図",
         back_to_title: "タイトルへ",
         timeup_text: "制限時間内にクリアできませんでした。",
-        ad_extend: "広告を見て +1分延長 📺",
+        ad_extend: "時間延長 🎬",
         retry: "再挑戦",
         ad_playing: "広告を再生中...",
         ad_countdown: "あと {val} 秒で終了します",
@@ -91,7 +91,7 @@ const I18N = {
         preview: "Preview",
         back_to_title: "Back to Title",
         timeup_text: "Failed to clear within the time limit.",
-        ad_extend: "Watch Ad for +1 Min 📺",
+        ad_extend: "Extend Time 🎬",
         retry: "Retry",
         ad_playing: "Playing Ad...",
         ad_countdown: "Finishing in {val}s",
@@ -139,7 +139,7 @@ const I18N = {
         preview: "完成图",
         back_to_title: "返回标题",
         timeup_text: "未能在限制时间内完成。",
-        ad_extend: "观看广告延长+1分钟 📺",
+        ad_extend: "观看广告延长+60秒 📺",
         retry: "重试",
         ad_playing: "广告播放中...",
         ad_countdown: "还剩 {val} 秒结束",
@@ -187,7 +187,7 @@ const I18N = {
         preview: "완성도",
         back_to_title: "타이틀로",
         timeup_text: "제한 시간 내에 클리어하지 못했습니다.",
-        ad_extend: "광고 보고 +1분 연장 📺",
+        ad_extend: "광고 보고 +60초 연장 📺",
         retry: "재도전",
         ad_playing: "광고 재생 중...",
         ad_countdown: "{val}초 남음",
@@ -1438,9 +1438,11 @@ class KinekoGame {
 
 
     startTimer(duration) {
-        this.stopTimer(); // 既存のタイマーを破棄
-        this.currentTurnStartTime = Date.now();
-        this.initialDuration = duration; // カウントダウン開始時の残り時間
+        this.stopTimer(); // 既存のタイマーをクリア
+
+        if (typeof duration === 'number') {
+            this.currentRemainingTime = duration;
+        }
 
         const timerEl = document.getElementById('game-timer');
         const elapsedTimerEl = document.getElementById('elapsed-timer');
@@ -1452,48 +1454,48 @@ class KinekoGame {
             if (timerEl) timerEl.style.display = 'block';
         }
 
-        this.timerInterval = setInterval(() => {
-            if (!this.currentTurnStartTime) return;
-            const timeDiff = Date.now() - this.currentTurnStartTime;
-            
-            if (!this.isJigsawMode) {
-                // 制限時間（カウントダウン）: 通常ピースモードのみ実行
-                this.currentRemainingTime = Math.max(0, this.initialDuration - timeDiff);
-                const minutes = Math.floor(this.currentRemainingTime / 60000);
-                const seconds = Math.floor((this.currentRemainingTime % 60000) / 1000);
-                const displayMin = String(minutes).padStart(2, '0');
-                const displaySec = String(seconds).padStart(2, '0');
+        // 初期表示を即座に更新
+        this.updateTimerDisplay();
 
-                if (timerEl) {
-                    timerEl.innerText = `${displayMin}:${displaySec}`;
+        // 1秒 (1000ms) ごとに1秒ずつ減らすシンプル方式に変更
+        this.timerInterval = setInterval(() => {
+            if (!this.isJigsawMode) {
+                if (this.currentRemainingTime > 0) {
+                    this.currentRemainingTime = Math.max(0, this.currentRemainingTime - 1000);
+                    this.updateTimerDisplay();
                 }
 
-                // 残り時間がゼロになった場合
                 if (this.currentRemainingTime <= 0) {
                     this.stopTimer();
                     this.onTimeUp();
                 }
             }
 
-            // 経過時間（トータルプレイ時間）
-            const totalElapsed = this.accumulatedElapsedTime + timeDiff;
-            const elapsedMin = String(Math.floor(totalElapsed / 60000)).padStart(2, '0');
-            const elapsedSec = String(Math.floor((totalElapsed % 60000) / 1000)).padStart(2, '0');
+            // 経過時間（トータルプレイ時間）も1秒加算
+            this.accumulatedElapsedTime += 1000;
+            const elapsedMin = String(Math.floor(this.accumulatedElapsedTime / 60000)).padStart(2, '0');
+            const elapsedSec = String(Math.floor((this.accumulatedElapsedTime % 60000) / 1000)).padStart(2, '0');
             if (elapsedTimerEl) {
                 elapsedTimerEl.setAttribute('data-i18n-val', `${elapsedMin}:${elapsedSec}`);
                 updateLanguage();
             }
-        }, 250); // 0.25秒ごとに画面表示を更新
+        }, 1000);
+    }
+
+    updateTimerDisplay() {
+        const timerEl = document.getElementById('game-timer');
+        if (!timerEl) return;
+        const minutes = Math.floor(this.currentRemainingTime / 60000);
+        const seconds = Math.floor((this.currentRemainingTime % 60000) / 1000);
+        const displayMin = String(minutes).padStart(2, '0');
+        const displaySec = String(seconds).padStart(2, '0');
+        timerEl.innerText = `${displayMin}:${displaySec}`;
     }
 
     stopTimer() {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
-        }
-        if (this.currentTurnStartTime) {
-            this.accumulatedElapsedTime += Date.now() - this.currentTurnStartTime;
-            this.currentTurnStartTime = null;
         }
     }
 
@@ -1535,35 +1537,25 @@ class KinekoGame {
             this._adProgressInterval = null;
         }
         this.isTransitioning = false;
-        // +1分延長してタイマー再開
-        this.currentRemainingTime = 60000;
+        // 停止時の残り時間に+60秒を加算してタイマー再開
+        const savedTime = this._pausedRemainingTime || 0;
+        this.currentRemainingTime = savedTime + 60000;
+        this._pausedRemainingTime = null;
         this.startTimer(this.currentRemainingTime);
     }
 
     watchAd() {
         // タイムアップモーダルを隠す
-        document.getElementById('timeup-modal').style.display = 'none';
+        const timeupModal = document.getElementById('timeup-modal');
+        if (timeupModal) timeupModal.style.display = 'none';
 
-        // 二重呼び出し防止フラグをリセット
-        this._rewardGranted = false;
+        // 広告表示中はゲームタイマーを完全に停止
+        this.stopTimer();
+        this._pausedRemainingTime = this.currentRemainingTime;
 
-        // Androidアプリ（WebView）から開かれている場合のみネイティブ広告を呼ぶ
         const nativeAdBridge = window.AndroidAdMob || window.Android;
-        if (nativeAdBridge && typeof nativeAdBridge.showRewardedAd === 'function') {
-            try {
-                nativeAdBridge.showRewardedAd();
-            } catch (e) {
-                console.warn('Native showRewardedAd failed:', e);
-                this.grantReward();
-            }
-            return;
-        } else if (nativeAdBridge && typeof nativeAdBridge.showRewardAd === 'function') {
-            try {
-                nativeAdBridge.showRewardAd();
-            } catch (e) {
-                console.warn('Native showRewardAd failed:', e);
-                this.grantReward();
-            }
+        if (nativeAdBridge && (nativeAdBridge.showRewardedAd || nativeAdBridge.showRewardAd)) {
+            showRewardAd();
             return;
         }
 
@@ -1621,86 +1613,90 @@ class KinekoGame {
     }
 }
 
-function onRewardEarned() {
+// 画面の時間表示更新ヘルパー
+function updateTimerDisplay() {
+    if (window.gameInstance && typeof window.gameInstance.updateTimerDisplay === 'function') {
+        window.gameInstance.updateTimerDisplay();
+    }
+}
+
+// モーダル削除ヘルパー
+function hideTimeUpModal() {
+    const timeupModal = document.getElementById('timeup-modal');
+    if (timeupModal) timeupModal.style.display = 'none';
+    const adModal = document.getElementById('ad-modal');
+    if (adModal) adModal.style.display = 'none';
+}
+
+// 広告表示ボタンを押した時
+function showRewardAd() {
+    if (window.Android && typeof window.Android.showRewardedAd === 'function') {
+        window.Android.showRewardedAd();
+    } else if (window.AndroidAdMob && typeof window.AndroidAdMob.showRewardedAd === 'function') {
+        window.AndroidAdMob.showRewardedAd();
+    }
+}
+
+// 報酬獲得時（広告を見終わった時）
+window.onRewardEarned = function() {
     try {
-        if (window.gameInstance && typeof window.gameInstance.grantReward === 'function') {
-            window.gameInstance.grantReward();
+        // 1. 残り時間に100秒（100,000ms）を加算する
+        if (window.gameInstance) {
+            window.gameInstance.currentRemainingTime = (window.gameInstance.currentRemainingTime || 0) + 100000;
+            window.gameInstance.isTransitioning = false;
+            
+            // 2. 画面の時間表示を更新する
+            updateTimerDisplay();
+
+            // タイマーが止まっていれば再スタート
+            if (!window.gameInstance.timerInterval) {
+                window.gameInstance.startTimer();
+            }
         }
+        
+        // 3. 時間切れモーダル・ダイアログ等を閉じる
+        hideTimeUpModal();
     } catch (e) {
         console.error('onRewardEarned error:', e);
     }
-}
+};
 
-// MainActivity.java から呼ばれる
-function onRewardClosed() {
+// 広告が閉じられた時（途中で閉じた場合など）
+window.onRewardClosed = function() {
+    // 途中で閉じた場合は何もしない（加算なし）
+};
+
+// MainActivity.java から呼ばれる (インタースティシャル広告終了時)
+function onInterstitialClosed() {
     try {
-        if (window.gameInstance && typeof window.gameInstance.grantReward === 'function') {
-            window.gameInstance.grantReward();
+        console.log('onInterstitialClosed called');
+        // 保存されたコールバックがあれば実行（タイトル遷移等）
+        if (window._interstitialCallback && typeof window._interstitialCallback === 'function') {
+            window._interstitialCallback();
+            window._interstitialCallback = null;
         }
     } catch (e) {
-        console.error('onRewardClosed error:', e);
-    }
-}
-
-// MainActivity.java から呼ばれる
-function onRewardAdStarted() {
-    try {
-        if (window.gameInstance && typeof window.gameInstance.onNativeAdStart === 'function') {
-            window.gameInstance.onNativeAdStart();
-        }
-    } catch (e) {
-        console.error('onRewardAdStarted error:', e);
+        console.error('onInterstitialClosed error:', e);
     }
 }
 
 // ====== インタースティシャル広告表示関数（ca-app-pub-7685711026688383/9307253180）======
 function showInterstitialAd(callback) {
-    // スマホ（モバイル端末）判定
-    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (!isMobile) {
-        // ウェブ版は広告を表示せず即座にタイトルへ戻る
-        callback();
-        return;
-    }
-
-    const modal = document.getElementById('interstitial-modal');
-    const countdownEl = document.getElementById('interstitial-countdown');
-    const skipBtn = document.getElementById('interstitial-skip-btn');
-    const statusEl = document.getElementById('interstitial-status');
-
-    if (!modal) { callback(); return; }
-
-    // AdMob インタースティシャルロード試行（WebView環境・将来のネイティブ対応用）
-    if (window.admob && window.admob.interstitial) {
-        window.admob.interstitial.load({ id: 'ca-app-pub-7685711026688383/9307253180' });
-        window.admob.interstitial.show()
-            .then(() => callback())
-            .catch(() => runFallback());
-        return;
-    }
-
-    // フォールバック：カウントダウン付き広告オーバーレイ表示
-    runFallback();
-
-    function runFallback() {
+    // コールバックを保存（広告終了後に onInterstitialClosed から呼ばれる）
+    if (callback && typeof callback === 'function') {
         window._interstitialCallback = callback;
-        modal.style.display = 'flex';
-        skipBtn.style.display = 'none';
-        statusEl.textContent = '広告をご覧ください...';
-
-        let sec = 5;
-        countdownEl.textContent = sec;
-
-        const timer = setInterval(() => {
-            sec--;
-            countdownEl.textContent = sec;
-            if (sec <= 0) {
-                clearInterval(timer);
-                skipBtn.style.display = 'inline-block';
-                countdownEl.textContent = '';
-                statusEl.textContent = 'スキップできます';
-            }
-        }, 1000);
+    }
+    if (window.Android && typeof window.Android.showInterstitialAd === 'function') {
+        window.Android.showInterstitialAd();
+    } else if (window.AndroidAdMob && typeof window.AndroidAdMob.showInterstitialAd === 'function') {
+        window.AndroidAdMob.showInterstitialAd();
+    } else {
+        console.log("ブラウザ（Web版）のためインタースティシャル広告はスキップします");
+        // Web版では即座にコールバックを実行
+        if (callback && typeof callback === 'function') {
+            callback();
+            window._interstitialCallback = null;
+        }
     }
 }
 
